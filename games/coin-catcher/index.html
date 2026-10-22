@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Coin Catcher - Professional Edition</title>
+  <style>
+    :root {
+      --bg-dark: #030712;
+      --card-bg: #0d1117;
+      --accent-cyan: #06b6d4;
+      --accent-lime: #a3e635;
+      --accent-red: #ef4444;
+      --text-gray: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #fff;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 10px;
+      overflow-x: hidden;
+    }
+
+    #game-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+      background: var(--card-bg);
+      border: 2px solid #21262d;
+      border-radius: 12px;
+      box-shadow: 0 0 35px rgba(6, 182, 212, 0.2);
+      overflow: hidden;
+    }
+
+    .game-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #090d16;
+      border-bottom: 1px solid #21262d;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .topbar-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .topbar-label {
+      font-size: 9px;
+      color: var(--text-gray);
+      text-transform: uppercase;
+    }
+
+    .topbar-val {
+      font-size: 14px;
+      color: var(--accent-cyan);
+    }
+
+    .audio-btn {
+      background: #161b22;
+      border: 1px solid #30363d;
+      color: #fff;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 800 / 480;
+      background: #030712;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 45px;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 45px);
+      background: rgba(3, 7, 18, 0.95);
+      backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .overlay.hidden {
+      display: none;
+    }
+
+    .overlay-title {
+      font-size: 24px;
+      font-weight: 900;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .overlay-desc {
+      font-size: 12px;
+      color: var(--text-gray);
+      margin-bottom: 20px;
+      max-width: 290px;
+      line-height: 1.4;
+    }
+
+    .countdown-number {
+      font-size: 64px;
+      font-weight: 900;
+      color: var(--accent-cyan);
+      animation: pulse 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(0.9); }
+      to { transform: scale(1.1); }
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 240px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+
+    .btn-success {
+      background: var(--accent-lime);
+      color: #000;
+    }
+
+    .btn-secondary {
+      background: #30363d;
+      color: #fff;
+    }
+
+    .btn-home {
+      background: #161b22;
+      color: var(--text-gray);
+      border: 1px solid #30363d;
+    }
+
+    .level-badge {
+      background: var(--accent-lime);
+      color: #000;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="game-wrapper">
+    <div class="game-topbar">
+      <div class="topbar-item">
+        <span class="topbar-label">Nível / Fase</span>
+        <span class="topbar-val" id="ui-stage">Nível 1 - Fase 1/30</span>
+      </div>
+      <div class="topbar-item">
+        <span class="topbar-label">Moedas</span>
+        <span class="topbar-val" id="ui-score" style="color: var(--accent-lime);">0 / 20</span>
+      </div>
+      <div class="topbar-item">
+        <span class="topbar-label">Tempo</span>
+        <span class="topbar-val" id="ui-timer" style="color: #f59e0b;">40s</span>
+      </div>
+      <button class="audio-btn" onclick="toggleAudio()">
+        <span id="audio-icon">🔊</span>
+      </button>
+    </div>
+
+    <canvas id="gameCanvas" width="800" height="480"></canvas>
+
+    <div id="overlay" class="overlay">
+      <span id="level-badge" class="level-badge">NÍVEL 1 - FASE 1 DE 30</span>
+      <h2 id="overlay-title" class="overlay-title" style="color: var(--accent-cyan);">COIN CATCHER</h2>
+      <p id="overlay-desc" class="overlay-desc">
+        Toque nas moedas 3D brilhantes antes que atinjam o laser inferior. Cuidado com as bombas!
+      </p>
+
+      <div id="countdown-box" style="display: none;">
+        <div id="countdown-num" class="countdown-number">3</div>
+      </div>
+
+      <div id="btn-group" class="btn-group">
+        <button id="btn-start" class="btn btn-primary" onclick="startCountdown()">INICIAR JOGO</button>
+        <button id="btn-finish" class="btn btn-success" style="display: none;" onclick="goToSync()">CONCLUIR FASE ➔</button>
+        <a id="btn-games" href="../index.html" class="btn btn-secondary">← Voltar para os Games</a>
+        <a id="btn-home" href="../../index.html" class="btn btn-home" style="display: none;">🏠 Home Page</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlayDesc = document.getElementById('overlay-desc');
+    const levelBadge = document.getElementById('level-badge');
+    const countdownBox = document.getElementById('countdown-box');
+    const countdownNum = document.getElementById('countdown-num');
+    const btnGroup = document.getElementById('btn-group');
+    const btnStart = document.getElementById('btn-start');
+    const btnFinish = document.getElementById('btn-finish');
+    const btnGames = document.getElementById('btn-games');
+    const btnHome = document.getElementById('btn-home');
+
+    const uiStage = document.getElementById('ui-stage');
+    const uiScore = document.getElementById('ui-score');
+    const uiTimer = document.getElementById('ui-timer');
+    const audioIcon = document.getElementById('audio-icon');
+
+    let audioEnabled = true;
+    let audioCtx = null;
+    let bgMusicTimer = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      audioIcon.innerText = audioEnabled ? '🔊' : '🔇';
+      if (!audioEnabled && bgMusicTimer) {
+        clearInterval(bgMusicTimer);
+        bgMusicTimer = null;
+      } else if (audioEnabled && gameActive) {
+        startBgMusic();
+      }
+    }
+
+    function playCoinSound() {
+      if (!audioEnabled) return;
+      initAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1400, audioCtx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.08);
+    }
+
+    function playExplosionSound() {
+      if (!audioEnabled) return;
+      initAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.25);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+    }
+
+    function startBgMusic() {
+      if (!audioEnabled || bgMusicTimer) return;
+      initAudio();
+      const notes = [261.63, 293.66, 329.63, 392.00, 440.00];
+      let step = 0;
+      bgMusicTimer = setInterval(() => {
+        if (!gameActive || !audioEnabled) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(notes[step % notes.length], audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+        step++;
+      }, 500);
+    }
+
+    function stopBgMusic() {
+      if (bgMusicTimer) {
+        clearInterval(bgMusicTimer);
+        bgMusicTimer = null;
+      }
+    }
+
+    function getPhaseConfig(phaseNumber) {
+      const currentLevel = Math.min(6, Math.floor((phaseNumber - 1) / 5) + 1);
+      const targetCoins = 20 + Math.floor((phaseNumber - 1) * 0.65);
+      const ufoSpeed = 1.3 + (currentLevel - 1) * 0.15;
+      const dropInterval = Math.max(50, 75 - (phaseNumber * 0.7));
+      const fallSpeedMin = 1.1 + (currentLevel - 1) * 0.08;
+      const fallSpeedMax = fallSpeedMin + 0.5;
+      const bombRatio = Math.min(0.30, 0.10 + (phaseNumber * 0.007));
+
+      return {
+        level: currentLevel,
+        phase: phaseNumber,
+        targetCoins: targetCoins,
+        timeLimit: 40,
+        ufoSpeed: ufoSpeed,
+        dropInterval: dropInterval,
+        fallSpeedMin: fallSpeedMin,
+        fallSpeedMax: fallSpeedMax,
+        bombRatio: bombRatio
+      };
+    }
+
+    const COIN_TYPES = [
+      { name: 'MTR', base: '#0099ff', glow: '#00ffff', dark: '#003366' },
+      { name: 'BTC', base: '#e65c00', glow: '#ffcc00', dark: '#662200' },
+      { name: 'LTC', base: '#1a43bf', glow: '#66a3ff', dark: '#0a194d' },
+      { name: 'ETH', base: '#4736d1', glow: '#b886fb', dark: '#1c1354' },
+      { name: 'DOGE', base: '#cc9900', glow: '#ffea80', dark: '#4d3900' },
+      { name: 'BNB', base: '#d4af37', glow: '#ffee99', dark: '#594700' }
+    ];
+
+    let currentPhase = parseInt(localStorage.getItem('coin_catcher_saved_stage') || '1');
+    let score = 0;
+    let timeLeft = 40;
+    let gameActive = false;
+    let timerInterval = null;
+    let frameCount = 0;
+
+    const ufo = { x: 400, y: 65, width: 110, height: 46, dir: 1 };
+
+    const stars = Array.from({ length: 70 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 2 + 0.5,
+      alpha: Math.random(),
+      speed: Math.random() * 0.2 + 0.05
+    }));
+
+    let drops = [];
+    let particles = [];
+
+    function addExplosionParticles(x, y, color) {
+      for (let i = 0; i < 16; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 5 + 1;
+        particles.push({
+          x: x, y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1.0, color: color, size: Math.random() * 3.5 + 2
+        });
+      }
+    }
+
+    function drawSpaceBackground() {
+      ctx.fillStyle = '#030712';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const neb1 = ctx.createRadialGradient(250, 180, 20, 250, 180, 350);
+      neb1.addColorStop(0, 'rgba(6, 182, 212, 0.18)');
+      neb1.addColorStop(0.5, 'rgba(110, 231, 183, 0.08)');
+      neb1.addColorStop(1, 'rgba(3, 7, 18, 0)');
+      ctx.fillStyle = neb1;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const neb2 = ctx.createRadialGradient(600, 300, 30, 600, 300, 400);
+      neb2.addColorStop(0, 'rgba(192, 132, 252, 0.15)');
+      neb2.addColorStop(0.5, 'rgba(59, 130, 246, 0.06)');
+      neb2.addColorStop(1, 'rgba(3, 7, 18, 0)');
+      ctx.fillStyle = neb2;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      stars.forEach(s => {
+        s.alpha += (Math.random() - 0.5) * 0.08;
+        if (s.alpha < 0.2) s.alpha = 0.2;
+        if (s.alpha > 1) s.alpha = 1;
+
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      const laserY = canvas.height - 24;
+      const laserGrad = ctx.createLinearGradient(0, laserY, 0, canvas.height);
+      laserGrad.addColorStop(0, 'rgba(239, 68, 68, 0.95)');
+      laserGrad.addColorStop(1, 'rgba(239, 68, 68, 0.15)');
+
+      ctx.fillStyle = laserGrad;
+      ctx.fillRect(0, laserY, canvas.width, 24);
+
+      ctx.shadowColor = '#ef4444';
+      ctx.shadowBlur = 16;
+      ctx.strokeStyle = '#fca5a5';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(0, laserY);
+      ctx.lineTo(canvas.width, laserY);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    function drawUFO() {
+      ctx.save();
+      ctx.translate(ufo.x, ufo.y);
+
+      const beamGrad = ctx.createLinearGradient(0, 10, 0, 50);
+      beamGrad.addColorStop(0, 'rgba(6, 182, 212, 0.65)');
+      beamGrad.addColorStop(1, 'rgba(6, 182, 212, 0.0)');
+      ctx.fillStyle = beamGrad;
+      ctx.beginPath();
+      ctx.moveTo(-28, 10);
+      ctx.lineTo(28, 10);
+      ctx.lineTo(70, 50);
+      ctx.lineTo(-70, 50);
+      ctx.closePath();
+      ctx.fill();
+
+      const domeGrad = ctx.createRadialGradient(0, -8, 3, 0, -8, 22);
+      domeGrad.addColorStop(0, '#a5f3fc');
+      domeGrad.addColorStop(0.5, '#06b6d4');
+      domeGrad.addColorStop(1, '#0e7490');
+      ctx.fillStyle = domeGrad;
+      ctx.beginPath();
+      ctx.arc(0, -8, 22, Math.PI, 0);
+      ctx.fill();
+
+      const saucerGrad = ctx.createLinearGradient(0, -10, 0, 15);
+      saucerGrad.addColorStop(0, '#cbd5e1');
+      saucerGrad.addColorStop(0.5, '#64748b');
+      saucerGrad.addColorStop(1, '#1e293b');
+      ctx.fillStyle = saucerGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 56, 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#67e8f9';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.ellipse(0, 5, 38, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      const lightCol = Math.floor(frameCount / 7) % 2 === 0 ? '#a3e635' : '#38bdf8';
+      ctx.fillStyle = lightCol;
+      [-36, -18, 0, 18, 36].forEach(lx => {
+        ctx.beginPath();
+        ctx.arc(lx, 4, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.restore();
+    }
+
+    function drawDrop(drop) {
+      ctx.save();
+      ctx.translate(drop.x, drop.y);
+
+      if (drop.isBomb) {
+        ctx.shadowColor = '#ef4444';
+        ctx.shadowBlur = 15;
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.arc(0, 0, drop.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        ctx.font = '22px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('💣', 0, 2);
+      } else {
+        const coin = drop.coinType;
+
+        ctx.shadowColor = coin.glow;
+        ctx.shadowBlur = 18;
+        const sphereGrad = ctx.createRadialGradient(-8, -8, 4, 0, 0, drop.radius);
+        sphereGrad.addColorStop(0, coin.glow);
+        sphereGrad.addColorStop(0.35, coin.base);
+        sphereGrad.addColorStop(1, coin.dark);
+
+        ctx.fillStyle = sphereGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, drop.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.arc(0, 0, drop.radius - 4, 0, Math.PI * 2);
+        ctx.stroke();
+
+        const highGrad = ctx.createRadialGradient(-9, -9, 1, -9, -9, 10);
+        highGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+        highGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = highGrad;
+        ctx.beginPath();
+        ctx.arc(0, 0, drop.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(coin.name, 0, 1);
+      }
+
+      ctx.restore();
+    }
+
+    function updateParticles() {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.035;
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+        } else {
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = p.life;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1.0;
+        }
+      }
+    }
+
+    function spawnDrop(cfg) {
+      const isBomb = Math.random() < cfg.bombRatio;
+      const coinType = COIN_TYPES[Math.floor(Math.random() * COIN_TYPES.length)];
+      drops.push({
+        x: ufo.x,
+        y: ufo.y + 18,
+        radius: 26,
+        speed: cfg.fallSpeedMin + Math.random() * (cfg.fallSpeedMax - cfg.fallSpeedMin),
+        isBomb: isBomb,
+        coinType: coinType
+      });
+    }
+
+    function update() {
+      if (!gameActive) return;
+
+      const cfg = getPhaseConfig(currentPhase);
+      frameCount++;
+
+      ufo.x += ufo.dir * cfg.ufoSpeed;
+      if (ufo.x - ufo.width / 2 <= 20 || ufo.x + ufo.width / 2 >= canvas.width - 20) {
+        ufo.dir *= -1;
+      }
+
+      if (frameCount % Math.floor(cfg.dropInterval) === 0) {
+        spawnDrop(cfg);
+      }
+
+      const laserY = canvas.height - 24;
+
+      for (let i = drops.length - 1; i >= 0; i--) {
+        let d = drops[i];
+        d.y += d.speed;
+
+        if (d.y + d.radius >= laserY) {
+          if (!d.isBomb) {
+            playExplosionSound();
+            addExplosionParticles(d.x, laserY, '#ef4444');
+            endGame(false, "Sua moeda foi destruída no feixe de raio!");
+            return;
+          } else {
+            drops.splice(i, 1);
+          }
+        }
+      }
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawSpaceBackground();
+      drawUFO();
+      drops.forEach(drawDrop);
+      updateParticles();
+    }
+
+    function gameLoop() {
+      update();
+      render();
+      if (gameActive) {
+        requestAnimationFrame(gameLoop);
+      }
+    }
+
+    function handleInteraction(clientX, clientY) {
+      if (!gameActive) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      const x = (clientX - rect.left) * scaleX;
+      const y = (clientY - rect.top) * scaleY;
+
+      const cfg = getPhaseConfig(currentPhase);
+
+      for (let i = drops.length - 1; i >= 0; i--) {
+        let d = drops[i];
+        const dist = Math.hypot(x - d.x, y - d.y);
+
+        if (dist <= d.radius + 18) {
+          if (d.isBomb) {
+            playExplosionSound();
+            addExplosionParticles(d.x, d.y, '#ef4444');
+            endGame(false, "A bomba explodiu ao seu toque!");
+            return;
+          } else {
+            playCoinSound();
+            addExplosionParticles(d.x, d.y, d.coinType.base);
+            score++;
+            uiScore.innerText = `${score} / ${cfg.targetCoins}`;
+            drops.splice(i, 1);
+
+            if (score >= cfg.targetCoins) {
+              triggerPhaseComplete();
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    canvas.addEventListener('click', (e) => handleInteraction(e.clientX, e.clientY));
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 0) {
+        handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    function startCountdown() {
+      if (currentPhase > 30) {
+        alert("Parabéns! Todas as 30 fases diárias já foram concluídas. Aguarde o reset às 21:00.");
+        window.location.href = "../index.html";
+        return;
+      }
+
+      initAudio();
+      btnGroup.style.display = 'none';
+      countdownBox.style.display = 'block';
+      let count = 3;
+      countdownNum.innerText = count;
+
+      const cdInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownNum.innerText = count;
+        } else if (count === 0) {
+          countdownNum.innerText = "READY!";
+        } else {
+          clearInterval(cdInterval);
+          countdownBox.style.display = 'none';
+          overlay.classList.add('hidden');
+          runGame();
+        }
+      }, 750);
+    }
+
+    function runGame() {
+      const cfg = getPhaseConfig(currentPhase);
+      score = 0;
+      timeLeft = cfg.timeLimit;
+      drops = [];
+      particles = [];
+      gameActive = true;
+
+      uiStage.innerText = `Nível ${cfg.level} - Fase ${cfg.phase}/30`;
+      uiScore.innerText = `0 / ${cfg.targetCoins}`;
+      uiTimer.innerText = `${timeLeft}s`;
+      startBgMusic();
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        uiTimer.innerText = `${timeLeft}s`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          if (score < cfg.targetCoins) {
+            endGame(false, "O tempo acabou antes de atingir a meta!");
+          }
+        }
+      }, 1000);
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function triggerPhaseComplete() {
+      gameActive = false;
+      stopBgMusic();
+      clearInterval(timerInterval);
+      overlay.classList.remove('hidden');
+
+      const cfg = getPhaseConfig(currentPhase);
+      levelBadge.innerText = `NÍVEL ${cfg.level} - FASE ${cfg.phase} DE 30`;
+
+      if (currentPhase >= 30) {
+        overlayTitle.innerText = "PARABÉNS! JOGO CONCLUÍDO!";
+        overlayTitle.style.color = "var(--accent-lime)";
+        overlayDesc.innerText = "Você concluiu com sucesso todas as 30 fases do Coin Catcher!";
+      } else {
+        overlayTitle.innerText = "FASE CONCLUÍDA!";
+        overlayTitle.style.color = "var(--accent-lime)";
+        overlayDesc.innerText = "Excelente coleta! Clique no botão abaixo para prosseguir e transferir os dados.";
+      }
+
+      btnStart.style.display = 'none';
+      btnFinish.style.display = 'block';
+      btnGames.style.display = 'block';
+      btnHome.style.display = 'none';
+      btnGroup.style.display = 'flex';
+    }
+
+    function goToSync() {
+      let nextPhase = currentPhase + 1;
+      localStorage.setItem('coin_catcher_saved_stage', nextPhase.toString());
+      if (nextPhase > 30) nextPhase = 31;
+      window.location.href = `../sync.html?game=coin_catcher&stage=${nextPhase}`;
+    }
+
+    function endGame(won, reason) {
+      gameActive = false;
+      stopBgMusic();
+      clearInterval(timerInterval);
+
+      const cfg = getPhaseConfig(currentPhase);
+      overlay.classList.remove('hidden');
+      levelBadge.innerText = `NÍVEL ${cfg.level} - FASE ${cfg.phase} DE 30`;
+
+      if (won) {
+        triggerPhaseComplete();
+      } else {
+        overlayTitle.innerText = "GAME OVER";
+        overlayTitle.style.color = "var(--accent-red)";
+        overlayDesc.innerText = reason;
+
+        btnStart.innerText = "NOVA PARTIDA";
+        btnStart.style.display = 'block';
+        btnFinish.style.display = 'none';
+        btnGames.innerText = "← Voltar aos Jogos";
+        btnGames.style.display = 'block';
+        btnHome.style.display = 'none';
+        btnGroup.style.display = 'flex';
+        currentPhase = 1;
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

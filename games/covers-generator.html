@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Mining Games - Capas AAA</title>
+  <style>
+    :root {
+      --bg-dark: #030712;
+      --card-bg: #0f172a;
+      --accent-cyan: #06b6d4;
+      --text-gray: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #fff;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin-bottom: 6px;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    p {
+      font-size: 12px;
+      color: var(--text-gray);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .covers-list {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .cover-container {
+      background: var(--card-bg);
+      border: 2px solid #1e293b;
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    .cover-title {
+      font-size: 14px;
+      font-weight: 800;
+      margin-top: 10px;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+      border-radius: 10px;
+      border: 1px solid #334155;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Capas Padrão Profissional</h1>
+  <p>Designs redesenhados com alta fidelidade visual (Estilo AAA)</p>
+
+  <div class="covers-list">
+    <!-- Capa 1: Coin Catcher -->
+    <div class="cover-container">
+      <canvas id="canvas-catch" width="500" height="500"></canvas>
+      <div class="cover-title">1. Coin Catcher</div>
+    </div>
+
+    <!-- Capa 2: Match-3 Puzzle -->
+    <div class="cover-container">
+      <canvas id="canvas-match" width="500" height="500"></canvas>
+      <div class="cover-title">2. Match-3 Puzzle</div>
+    </div>
+
+    <!-- Capa 3: Aero Dash -->
+    <div class="cover-container">
+      <canvas id="canvas-aero" width="500" height="500"></canvas>
+      <div class="cover-title">3. Aero Dash</div>
+    </div>
+
+    <!-- Capa 4: Crypto 2048 -->
+    <div class="cover-container">
+      <canvas id="canvas-2048" width="500" height="500"></canvas>
+      <div class="cover-title">4. Crypto 2048</div>
+    </div>
+  </div>
+
+  <script>
+    // --- FUNÇÃO AUXILIAR: Desenhar Moeda Realista ---
+    function drawProCoin(ctx, x, y, radius, mainColor, symbol, secondaryColor = '#fff') {
+      ctx.save();
+      ctx.translate(x, y);
+
+      // Sombra externa
+      ctx.shadowColor = mainColor;
+      ctx.shadowBlur = 12;
+
+      // Corpo da moeda (Gradiente Circular Estilo 3D)
+      let grad = ctx.createRadialGradient(-radius/3, -radius/3, 2, 0, 0, radius);
+      grad.addColorStop(0, '#ffffff');
+      grad.addColorStop(0.3, mainColor);
+      grad.addColorStop(1, '#020617');
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Borda interna brilhante
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = secondaryColor;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius - 3, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Texto/Símbolo central
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `bold ${Math.round(radius * 0.75)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(symbol, 0, 1);
+
+      ctx.restore();
+    }
+
+    // --- 1. COIN CATCHER (Versão Premium Sci-Fi) ---
+    const ctx1 = document.getElementById('canvas-catch').getContext('2d');
+    // Fundo Galáctico
+    let bg1 = ctx1.createRadialGradient(250, 150, 50, 250, 250, 300);
+    bg1.addColorStop(0, '#1e1b4b'); bg1.addColorStop(0.5, '#0f172a'); bg1.addColorStop(1, '#020617');
+    ctx1.fillStyle = bg1; ctx1.fillRect(0, 0, 500, 500);
+
+    // Grid de fundo futurista
+    ctx1.strokeStyle = 'rgba(6, 182, 212, 0.1)';
+    ctx1.lineWidth = 1;
+    for(let i=0; i<500; i+=40) {
+      ctx1.beginPath(); ctx1.moveTo(i, 0); ctx1.lineTo(i, 500); ctx1.stroke();
+      ctx1.beginPath(); ctx1.moveTo(0, i); ctx1.lineTo(500, i); ctx1.stroke();
+    }
+
+    // Nave UFO Detalhada
+    ctx1.fillStyle = '#475569'; ctx1.beginPath(); ctx1.ellipse(250, 110, 110, 32, 0, 0, Math.PI*2); ctx1.fill();
+    ctx1.fillStyle = '#94a3b8'; ctx1.beginPath(); ctx1.ellipse(250, 102, 120, 14, 0, 0, Math.PI*2); ctx1.fill();
+    // Cúpula de vidro brilhante
+    let ufoDome = ctx1.createRadialGradient(240, 92, 5, 250, 95, 45);
+    ufoDome.addColorStop(0, '#a5f3fc'); ufoDome.addColorStop(0.5, '#06b6d4'); ufoDome.addColorStop(1, '#0369a1');
+    ctx1.fillStyle = ufoDome; ctx1.beginPath(); ctx1.ellipse(250, 92, 50, 24, 0, 0, Math.PI*2); ctx1.fill();
+
+    // Feixe de Luz Volumétrico
+    let beam1 = ctx1.createLinearGradient(250, 120, 250, 420);
+    beam1.addColorStop(0, 'rgba(6, 182, 212, 0.6)');
+    beam1.addColorStop(1, 'rgba(6, 182, 212, 0)');
+    ctx1.fillStyle = beam1;
+    ctx1.beginPath(); ctx1.moveTo(250, 120); ctx1.lineTo(130, 420); ctx1.lineTo(370, 420); ctx1.fill();
+
+    // Moedas caindo com brilho
+    drawProCoin(ctx1, 210, 180, 26, '#06b6d4', 'MTR', '#bae6fd');
+    drawProCoin(ctx1, 300, 250, 32, '#f97316', '₿', '#fed7aa');
+    drawProCoin(ctx1, 200, 320, 28, '#eab308', 'Ð', '#fef08a');
+
+    // Campo de Força Laser Inferior (High Glow)
+    ctx1.shadowColor = '#ef4444'; ctx1.shadowBlur = 25;
+    ctx1.fillStyle = '#ef4444'; ctx1.fillRect(40, 440, 420, 10);
+    ctx1.fillStyle = '#fca5a5'; ctx1.fillRect(40, 442, 420, 4);
+    ctx1.shadowBlur = 0;
+
+
+    // --- 2. MATCH-3 PUZZLE (Versão Gemas Cripto Estilizadas) ---
+    const ctx2 = document.getElementById('canvas-match').getContext('2d');
+    let bg2 = ctx2.createLinearGradient(0, 0, 500, 500);
+    bg2.addColorStop(0, '#0f172a'); bg2.addColorStop(1, '#1e1b4b');
+    ctx2.fillStyle = bg2; ctx2.fillRect(0, 0, 500, 500);
+
+    // Tabuleiro com moldura de vidro escuro
+    ctx2.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx2.strokeStyle = '#334155'; ctx2.lineWidth = 4;
+    ctx2.fillRect(35, 35, 430, 430); ctx2.strokeRect(35, 35, 430, 430);
+
+    const mGrid = [
+      ['MTR', 'BTC', 'LTC', 'ETH'],
+      ['BTC', 'MTR', 'MTR', 'DOGE'],
+      ['ETH', 'DOGE', 'BNB', 'LTC'],
+      ['LTC', 'BNB', 'BTC', 'MTR']
+    ];
+    const mColors = {
+      'MTR': '#06b6d4', 'BTC': '#f97316', 'LTC': '#3b82f6',
+      'ETH': '#6366f1', 'DOGE': '#eab308', 'BNB': '#fbbf24'
+    };
+    const cSize = 98, cOffX = 54, cOffY = 54;
+    for(let r=0; r<4; r++) {
+      for(let c=0; c<4; c++) {
+        let x = cOffX + c * cSize + cSize/2;
+        let y = cOffY + r * cSize + cSize/2;
+        let sym = mGrid[r][c];
+        let col = mColors[sym];
+
+        // Slot interno
+        ctx2.fillStyle = '#1e293b';
+        ctx2.beginPath(); ctx2.roundRect(x - cSize/2 + 6, y - cSize/2 + 6, cSize - 12, cSize - 12, 10); ctx2.fill();
+        ctx2.strokeStyle = '#334155'; ctx2.lineWidth = 1; ctx2.stroke();
+
+        // Se for match horizontal em destaque (linha 1)
+        if(r === 1 && (c === 1 || c === 2)) {
+          ctx2.shadowColor = '#06b6d4'; ctx2.shadowBlur = 15;
+        }
+        drawProCoin(ctx2, x, y, 32, col, sym);
+        ctx2.shadowBlur = 0;
+      }
+    }
+
+
+    // --- 3. AERO DASH (Versão Sci-Fi Espacial Imersiva) ---
+    const ctx3 = document.getElementById('canvas-aero').getContext('2d');
+    let bg3 = ctx3.createLinearGradient(0, 0, 0, 500);
+    bg3.addColorStop(0, '#020617'); bg3.addColorStop(0.6, '#0f172a'); bg3.addColorStop(1, '#31103f');
+    ctx3.fillStyle = bg3; ctx3.fillRect(0, 0, 500, 500);
+
+    // Torres Sci-Fi Detalhadas com Neon
+    function drawTower(x, y, w, h, isTop) {
+      ctx3.fillStyle = '#1e293b'; ctx3.fillRect(x, y, w, h);
+      ctx3.strokeStyle = '#06b6d4'; ctx3.lineWidth = 3; ctx3.strokeRect(x, y, w, h);
+
+      // Detalhes luminosos na torre
+      ctx3.fillStyle = '#06b6d4';
+      ctx3.shadowColor = '#06b6d4'; ctx3.shadowBlur = 10;
+      if(isTop) {
+        ctx3.fillRect(x - 6, y + h - 14, w + 12, 14);
+      } else {
+        ctx3.fillRect(x - 6, y, w + 12, 14);
+      }
+      ctx3.shadowBlur = 0;
+    }
+    drawTower(90, 0, 75, 180, true);
+    drawTower(90, 310, 75, 190, false);
+    drawTower(330, 0, 75, 120, true);
+    drawTower(330, 270, 75, 230, false);
+
+    // Nave Aurora Estilizada com Efeito de Propulsão
+    ctx3.save();
+    ctx3.translate(225, 240);
+
+    // Chama do propulsor
+    let flame = ctx3.createLinearGradient(-50, 0, -25, 0);
+    flame.addColorStop(0, '#fbbf24'); flame.addColorStop(1, 'rgba(239, 68, 68, 0)');
+    ctx3.fillStyle = flame;
+    ctx3.beginPath(); ctx3.moveTo(-25, 8); ctx3.lineTo(-65, 0); ctx3.lineTo(-25, -8); ctx3.closePath(); ctx3.fill();
+
+    // Asas e Corpo da Nave
+    ctx3.fillStyle = '#ef4444';
+    ctx3.shadowColor = '#ef4444'; ctx3.shadowBlur = 12;
+    ctx3.beginPath();
+    ctx3.moveTo(-28, 12); ctx3.lineTo(32, 0); ctx3.lineTo(-28, -12); ctx3.lineTo(-15, 0);
+    ctx3.closePath();
+    ctx3.fill();
+
+    // Cockpit
+    ctx3.fillStyle = '#06b6d4';
+    ctx3.beginPath(); ctx3.ellipse(6, 0, 10, 5, 0, 0, Math.PI*2); ctx3.fill();
+    ctx3.restore();
+
+
+    // --- 4. CRYPTO 2048 (Estilo Oficial Grid Cripto) ---
+    const ctx4 = document.getElementById('canvas-2048').getContext('2d');
+    let bg4 = ctx4.createLinearGradient(0, 0, 500, 500);
+    bg4.addColorStop(0, '#090d16'); bg4.addColorStop(1, '#1e1b4b');
+    ctx4.fillStyle = bg4; ctx4.fillRect(0, 0, 500, 500);
+
+    // Fundo da Grade 2048
+    ctx4.fillStyle = '#0f172a'; ctx4.strokeStyle = '#334155'; ctx4.lineWidth = 4;
+    ctx4.beginPath(); ctx4.roundRect(40, 40, 420, 420, 14); ctx4.fill(); ctx4.strokeRef ? ctx4.strokeRef() : ctx4.stroke();
+
+    const tSize = 92, tOffX = 54, tOffY = 54;
+    const grid2048 = [
+      [2, 4, 0, 0],
+      [0, 8, 16, 0],
+      [32, 0, 0, 64],
+      [0, 128, 256, 512]
+    ];
+    const cMap = {
+      2: {col: '#06b6d4', sym: 'MTR'}, 4: {col: '#ec4899', sym: 'TRX'}, 8: {col: '#3b82f6', sym: 'Ł'},
+      16: {col: '#6366f1', sym: '♦'}, 32: {col: '#f59e0b', sym: 'Ð'}, 64: {col: '#10b981', sym: 'SOL'},
+      128: {col: '#3b82f6', sym: 'ADA'}, 256: {col: '#fbbf24', sym: '⬡'}, 512: {col: '#64748b', sym: 'XRP'}
+    };
+
+    for(let r=0; r<4; r++) {
+      for(let c=0; c<4; c++) {
+        let x = tOffX + c * tSize;
+        let y = tOffY + r * tSize;
+
+        // Slot vazio
+        ctx4.fillStyle = '#1e293b';
+        ctx4.beginPath(); ctx4.roundRect(x+4, y+4, tSize-8, tSize-8, 8); ctx4.fill();
+
+        let val = grid2048[r][c];
+        if(val > 0) {
+          let info = cMap[val];
+          // Quadrado base branco/creme (igualzinho ao modelo referência)
+          ctx4.fillStyle = '#f8fafc';
+          ctx4.beginPath(); ctx4.roundRect(x+8, y+8, tSize-16, tSize-16, 6); ctx4.fill();
+          ctx4.strokeStyle = '#cbd5e1'; ctx4.lineWidth = 1.5; ctx4.stroke();
+
+          // Moeda redonda centralizada
+          drawProCoin(ctx4, x + tSize/2, y + tSize/2, (tSize - 28)/2, info.col, info.sym);
+        }
+      }
+    }
+  </script>
+</body>
+</html>

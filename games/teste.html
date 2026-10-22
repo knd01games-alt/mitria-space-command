@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor de Capas - Mitria</title>
+  <style>
+    body { background: #0d1117; color: white; font-family: sans-serif; padding: 15px; max-width: 500px; margin: auto; }
+    h2 { color: #06b6d4; text-align: center; font-size: 18px; margin-bottom: 20px; }
+    .card { background: #161b22; border: 1px solid #30363d; padding: 12px; border-radius: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
+    img { width: 110px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid #48515d; flex-shrink: 0; }
+    .info { flex-grow: 1; }
+    .file-label { font-size: 11px; color: #94a3b8; display: block; margin-bottom: 4px; }
+    select { width: 100%; background: #0d1117; color: #a3e635; border: 1px solid #06b6d4; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 12px; }
+    button { width: 100%; background: #06b6d4; color: #030712; border: none; padding: 12px; font-weight: bold; font-size: 14px; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+    #output { background: #030712; border: 1px solid #30363d; padding: 12px; border-radius: 8px; margin-top: 15px; font-family: monospace; font-size: 11px; color: #a3e635; white-space: pre-wrap; word-break: break-all; display: none; }
+  </style>
+</head>
+<body>
+
+  <h2>AJUSTE VISUAL DAS CAPAS</h2>
+
+  <div class="card">
+    <img src="assets/cover-tokenblaster.jpg?v=999">
+    <div class="info">
+      <span class="file-label">Arquivo: cover-tokenblaster.jpg</span>
+      <span class="file-label" style="color:#06b6d4;">Esta imagem pertence ao jogo:</span>
+      <select id="sel-tokenblaster">
+        <option value="cover-tokenblaster.jpg">Token Blaster</option>
+        <option value="cover-catcher.jpg">Coin Catcher</option>
+        <option value="cover-match3.jpg">Match-3 Puzzle</option>
+        <option value="cover-2048.jpg">Crypto 2048</option>
+        <option value="cover-aerodash.jpg">Aero Dash</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="assets/cover-catcher.jpg?v=999">
+    <div class="info">
+      <span class="file-label">Arquivo: cover-catcher.jpg</span>
+      <span class="file-label" style="color:#06b6d4;">Esta imagem pertence ao jogo:</span>
+      <select id="sel-catcher">
+        <option value="cover-tokenblaster.jpg">Token Blaster</option>
+        <option value="cover-catcher.jpg" selected>Coin Catcher</option>
+        <option value="cover-match3.jpg">Match-3 Puzzle</option>
+        <option value="cover-2048.jpg">Crypto 2048</option>
+        <option value="cover-aerodash.jpg">Aero Dash</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="assets/cover-match3.jpg?v=999">
+    <div class="info">
+      <span class="file-label">Arquivo: cover-match3.jpg</span>
+      <span class="file-label" style="color:#06b6d4;">Esta imagem pertence ao jogo:</span>
+      <select id="sel-match3">
+        <option value="cover-tokenblaster.jpg">Token Blaster</option>
+        <option value="cover-catcher.jpg">Coin Catcher</option>
+        <option value="cover-match3.jpg" selected>Match-3 Puzzle</option>
+        <option value="cover-2048.jpg">Crypto 2048</option>
+        <option value="cover-aerodash.jpg">Aero Dash</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="assets/cover-2048.jpg?v=999">
+    <div class="info">
+      <span class="file-label">Arquivo: cover-2048.jpg</span>
+      <span class="file-label" style="color:#06b6d4;">Esta imagem pertence ao jogo:</span>
+      <select id="sel-2048">
+        <option value="cover-tokenblaster.jpg">Token Blaster</option>
+        <option value="cover-catcher.jpg">Coin Catcher</option>
+        <option value="cover-match3.jpg">Match-3 Puzzle</option>
+        <option value="cover-2048.jpg" selected>Crypto 2048</option>
+        <option value="cover-aerodash.jpg">Aero Dash</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="assets/cover-aerodash.jpg?v=999">
+    <div class="info">
+      <span class="file-label">Arquivo: cover-aerodash.jpg</span>
+      <span class="file-label" style="color:#06b6d4;">Esta imagem pertence ao jogo:</span>
+      <select id="sel-aerodash">
+        <option value="cover-tokenblaster.jpg">Token Blaster</option>
+        <option value="cover-catcher.jpg">Coin Catcher</option>
+        <option value="cover-match3.jpg">Match-3 Puzzle</option>
+        <option value="cover-2048.jpg">Crypto 2048</option>
+        <option value="cover-aerodash.jpg" selected>Aero Dash</option>
+      </select>
+    </div>
+  </div>
+
+  <button onclick="gerarComando()">GERAR COMANDO DE CORREÇÃO</button>
+
+  <div id="output"></div>
+
+  <script>
+    function gerarComando() {
+      const tb = document.getElementById('sel-tokenblaster').value;
+      const cc = document.getElementById('sel-catcher').value;
+      const m3 = document.getElementById('sel-match3').value;
+      const c2048 = document.getElementById('sel-2048').value;
+      const ad = document.getElementById('sel-aerodash').value;
+
+      let cmd = `cd ~/mitria-space-command/games/assets\n`;
+      cmd += `mv cover-tokenblaster.jpg ${tb}.tmp\n`;
+      cmd += `mv cover-catcher.jpg ${cc}.tmp\n`;
+      cmd += `mv cover-match3.jpg ${m3}.tmp\n`;
+      cmd += `mv cover-2048.jpg ${c2048}.tmp\n`;
+      cmd += `mv cover-aerodash.jpg ${ad}.tmp\n\n`;
+      cmd += `mv cover-tokenblaster.jpg.tmp cover-tokenblaster.jpg\n`;
+      cmd += `mv cover-catcher.jpg.tmp cover-catcher.jpg\n`;
+      cmd += `mv cover-match3.jpg.tmp cover-match3.jpg\n`;
+      cmd += `mv cover-2048.jpg.tmp cover-2048.jpg\n`;
+      cmd += `mv cover-aerodash.jpg.tmp cover-aerodash.jpg`;
+
+      const out = document.getElementById('output');
+      out.style.display = 'block';
+      out.innerText = cmd;
+    }
+  </script>
+</body>
+</html>

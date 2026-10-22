@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Crypto 2048 - Professional Edition</title>
+  <style>
+    :root {
+      --bg-dark: #030712;
+      --card-bg: #0d1117;
+      --accent-cyan: #06b6d4;
+      --accent-lime: #a3e635;
+      --accent-red: #ef4444;
+      --text-gray: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #fff;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 10px;
+      overflow-x: hidden;
+    }
+
+    #game-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+      background: var(--card-bg);
+      border: 2px solid #21262d;
+      border-radius: 12px;
+      box-shadow: 0 0 35px rgba(6, 182, 212, 0.2);
+      overflow: hidden;
+    }
+
+    .game-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #090d16;
+      border-bottom: 1px solid #21262d;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .topbar-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .topbar-label {
+      font-size: 9px;
+      color: var(--text-gray);
+      text-transform: uppercase;
+    }
+
+    .topbar-val {
+      font-size: 14px;
+      color: var(--accent-cyan);
+    }
+
+    .audio-btn {
+      background: #161b22;
+      border: 1px solid #30363d;
+      color: #fff;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+      background: #030712;
+      touch-action: none;
+    }
+
+    #grid-2048 {
+      display: grid;
+      grid-template-columns: repeat(4, 72px);
+      grid-template-rows: repeat(4, 72px);
+      gap: 10px;
+      justify-content: center;
+      background: #0d121d;
+      padding: 14px;
+      border-radius: 16px;
+      border: 2px solid #1e293b;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 0 25px rgba(6, 182, 212, 0.15);
+    }
+
+    /* Slot Vazio */
+    .slot {
+      width: 72px;
+      height: 72px;
+      background: #161d2a;
+      border-radius: 12px;
+      border: 1px solid #212d40;
+    }
+
+    /* Card Quadrado Estilo Referência */
+    .cell {
+      width: 72px;
+      height: 72px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: #f8fafc;
+      border: 2px solid #cbd5e1;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      transition: transform 0.1s ease;
+    }
+
+    /* Esfera Moeda 3D dentro do Card */
+    .coin-3d {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border: 2px solid #ffffff;
+      box-sizing: border-box;
+      box-shadow: inset 0 -3px 6px rgba(0,0,0,0.4), 0 3px 6px rgba(0,0,0,0.3);
+    }
+
+    /* Reflexo de Luz 3D no canto da esfera */
+    .coin-3d::before {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 7px;
+      width: 14px;
+      height: 7px;
+      background: rgba(255, 255, 255, 0.65);
+      border-radius: 50%;
+      transform: rotate(-30deg);
+    }
+
+    /* Texto/Símbolo do Token */
+    .token-symbol {
+      font-size: 13px;
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      letter-spacing: 0.5px;
+      z-index: 2;
+    }
+
+    /* PALETA E BRILHOS INDIVIDUAIS FIÉIS À SUA FOTO */
+    
+    /* 2: MTR (Ciano) */
+    .c2 { background: #f0fdfa; border-color: #a5f3fc; box-shadow: 0 0 12px rgba(6, 182, 212, 0.5); }
+    .c2 .coin-3d { background: radial-gradient(circle at 35% 35%, #00ffff 0%, #0088cc 60%, #003366 100%); }
+
+    /* 4: TRX (Rosa/Vinho) */
+    .c4 { background: #fdf2f8; border-color: #fbcfe8; box-shadow: 0 0 12px rgba(219, 39, 119, 0.5); }
+    .c4 .coin-3d { background: radial-gradient(circle at 35% 35%, #f472b6 0%, #9d174d 60%, #4c0519 100%); }
+
+    /* 8: LTC (Azul Royal) */
+    .c8 { background: #eff6ff; border-color: #bfdbfe; box-shadow: 0 0 12px rgba(37, 99, 235, 0.5); }
+    .c8 .coin-3d { background: radial-gradient(circle at 35% 35%, #60a5fa 0%, #1d4ed8 60%, #1e3a8a 100%); }
+
+    /* 16: ETH (Roxo Elétrico) */
+    .c16 { background: #faf5ff; border-color: #e9d5ff; box-shadow: 0 0 12px rgba(147, 51, 234, 0.5); }
+    .c16 .coin-3d { background: radial-gradient(circle at 35% 35%, #c084fc 0%, #6b21a8 60%, #3b0764 100%); }
+
+    /* 32: DOGE (Dourado/Amarelo) */
+    .c32 { background: #fefce8; border-color: #fef08a; box-shadow: 0 0 12px rgba(234, 179, 8, 0.5); }
+    .c32 .coin-3d { background: radial-gradient(circle at 35% 35%, #fde047 0%, #ca8a04 60%, #713f12 100%); }
+
+    /* 64: SOL (Verde Esmeralda) */
+    .c64 { background: #f0fdf4; border-color: #bbf7d0; box-shadow: 0 0 12px rgba(16, 185, 129, 0.5); }
+    .c64 .coin-3d { background: radial-gradient(circle at 35% 35%, #34d399 0%, #047857 60%, #064e3b 100%); }
+
+    /* 128: ADA (Azul Cobre) */
+    .c128 { background: #f0f9ff; border-color: #bae6fd; box-shadow: 0 0 12px rgba(14, 165, 233, 0.5); }
+    .c128 .coin-3d { background: radial-gradient(circle at 35% 35%, #38bdf8 0%, #0369a1 60%, #0c4a6e 100%); }
+
+    /* 256: XRP (Preto Metálico) */
+    .c256 { background: #f8fafc; border-color: #cbd5e1; box-shadow: 0 0 12px rgba(100, 116, 139, 0.5); }
+    .c256 .coin-3d { background: radial-gradient(circle at 35% 35%, #64748b 0%, #1e293b 60%, #0f172a 100%); }
+
+    /* 512: BTC (Laranja Ouro) */
+    .c512 { background: #fff7ed; border-color: #fed7aa; box-shadow: 0 0 14px rgba(249, 115, 22, 0.6); }
+    .c512 .coin-3d { background: radial-gradient(circle at 35% 35%, #fb923c 0%, #c2410c 60%, #7c2d12 100%); }
+
+    /* 1024: BNB (Amarelo Neon) */
+    .c1024 { background: #fefce8; border-color: #fef08a; box-shadow: 0 0 16px rgba(234, 179, 8, 0.7); }
+    .c1024 .coin-3d { background: radial-gradient(circle at 35% 35%, #facc15 0%, #a16207 60%, #422006 100%); }
+
+    /* 2048: MTH / MITRIA (Lendário) */
+    .c2048 { background: #f0fdf4; border-color: #a3e635; box-shadow: 0 0 22px rgba(163, 230, 53, 0.9); }
+    .c2048 .coin-3d { background: radial-gradient(circle at 35% 35%, #bef264 0%, #65a30d 60%, #1a2e05 100%); }
+
+    .overlay {
+      position: absolute;
+      top: 45px;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 45px);
+      background: rgba(3, 7, 18, 0.95);
+      backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .overlay.hidden {
+      display: none;
+    }
+
+    .overlay-title {
+      font-size: 24px;
+      font-weight: 900;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .overlay-desc {
+      font-size: 12px;
+      color: var(--text-gray);
+      margin-bottom: 20px;
+      max-width: 290px;
+      line-height: 1.4;
+    }
+
+    .countdown-number {
+      font-size: 64px;
+      font-weight: 900;
+      color: var(--accent-cyan);
+      animation: pulse 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(0.9); }
+      to { transform: scale(1.1); }
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 240px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+
+    .btn-secondary {
+      background: #30363d;
+      color: #fff;
+    }
+
+    .btn-home {
+      background: #161b22;
+      color: var(--text-gray);
+      border: 1px solid #30363d;
+    }
+
+    .level-badge {
+      background: var(--accent-lime);
+      color: #000;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="game-wrapper">
+    <div class="game-topbar">
+      <div class="topbar-item">
+        <span class="topbar-label">Nível / Fase</span>
+        <span class="topbar-val" id="ui-stage">Nível 1 - Fase 1/30</span>
+      </div>
+      <div class="topbar-item">
+        <span class="topbar-label">Pontos / Meta</span>
+        <span class="topbar-val" id="ui-score" style="color: var(--accent-lime);">0 / 256</span>
+      </div>
+      <div class="topbar-item">
+        <span class="topbar-label">Tempo</span>
+        <span class="topbar-val" id="ui-timer" style="color: #f59e0b;">50s</span>
+      </div>
+      <button class="audio-btn" onclick="toggleAudio()">
+        <span id="audio-icon">🔊</span>
+      </button>
+    </div>
+
+    <div class="game-container" id="gameContainer">
+      <div id="grid-2048"></div>
+    </div>
+
+    <div id="overlay" class="overlay">
+      <span id="level-badge" class="level-badge">NÍVEL 1 - FASE 1 DE 30</span>
+      <h2 id="overlay-title" class="overlay-title" style="color: var(--accent-cyan);">CRYPTO 2048</h2>
+      <p id="overlay-desc" class="overlay-desc">
+        Deslize o dedo ou o mouse para juntar as moedas cripto 3D idênticas e alcançar a meta!
+      </p>
+
+      <div id="countdown-box" style="display: none;">
+        <div id="countdown-num" class="countdown-number">3</div>
+      </div>
+
+      <div id="btn-group" class="btn-group">
+        <button id="btn-start" class="btn btn-primary" onclick="startCountdown()">INICIAR JOGO</button>
+        <a id="btn-games" href="../index.html" class="btn btn-secondary">← Voltar para os Games</a>
+        <a id="btn-home" href="../../index.html" class="btn btn-home" style="display: none;">🏠 Home Page</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlayDesc = document.getElementById('overlay-desc');
+    const levelBadge = document.getElementById('level-badge');
+    const countdownBox = document.getElementById('countdown-box');
+    const countdownNum = document.getElementById('countdown-num');
+    const btnGroup = document.getElementById('btn-group');
+    const btnStart = document.getElementById('btn-start');
+    const btnGames = document.getElementById('btn-games');
+    const btnHome = document.getElementById('btn-home');
+
+    const uiStage = document.getElementById('ui-stage');
+    const uiScore = document.getElementById('ui-score');
+    const uiTimer = document.getElementById('ui-timer');
+    const audioIcon = document.getElementById('audio-icon');
+
+    let audioEnabled = true;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      audioIcon.innerText = audioEnabled ? '🔊' : '🔇';
+    }
+
+    function playMergeSound() {
+      if (!audioEnabled) return;
+      initAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.12);
+    }
+
+    // Siglas oficiais das Moedas
+    const SYMBOLS = {
+      2: 'MTR',
+      4: 'TRX',
+      8: 'LTC',
+      16: 'ETH',
+      32: 'DOGE',
+      64: 'SOL',
+      128: 'ADA',
+      256: 'XRP',
+      512: 'BTC',
+      1024: 'BNB',
+      2048: 'MTH' // Mitria (Moeda Oficial)
+    };
+
+    const boardSize = 4;
+    let board = [
+      [0,0,0,0],
+      [0,0,0,0],
+      [0,0,0,0],
+      [0,0,0,0]
+    ];
+    let score = 0;
+    let targetScore = 256;
+    let timeLeft = 50;
+    let gameActive = false;
+    let timerInterval = null;
+
+    let currentPhase = parseInt(localStorage.getItem('crypto_2048_saved_stage') || '1');
+
+    function getPhaseConfig(phase) {
+      const level = Math.min(6, Math.floor((phase - 1) / 5) + 1);
+      let targets = [128, 256, 512, 1024, 2048];
+      let target = targets[Math.min(level - 1, targets.length - 1)];
+      return {
+        level: level,
+        phase: phase,
+        targetScore: target,
+        timeLimit: 50
+      };
+    }
+
+    function renderBoard() {
+      const container = document.getElementById('grid-2048');
+      container.innerHTML = '';
+      for (let r = 0; r < boardSize; r++) {
+        for (let c = 0; c < boardSize; c++) {
+          const val = board[r][c];
+          if (val > 0) {
+            const div = document.createElement('div');
+            div.className = 'cell c' + val;
+            
+            const coin = document.createElement('div');
+            coin.className = 'coin-3d';
+            
+            const sym = document.createElement('span');
+            sym.className = 'token-symbol';
+            sym.innerText = SYMBOLS[val] || val;
+            
+            coin.appendChild(sym);
+            div.appendChild(coin);
+            container.appendChild(div);
+          } else {
+            const empty = document.createElement('div');
+            empty.className = 'slot';
+            container.appendChild(empty);
+          }
+        }
+      }
+      uiScore.innerText = `${score} / ${targetScore}`;
+    }
+
+    function addRandomTile() {
+      let empty = [];
+      for (let r = 0; r < boardSize; r++) {
+        for (let c = 0; c < boardSize; c++) {
+          if (board[r][c] === 0) empty.push({r, c});
+        }
+      }
+      if (empty.length > 0) {
+        let spot = empty[Math.floor(Math.random() * empty.length)];
+        board[spot.r][spot.c] = Math.random() < 0.9 ? 2 : 4;
+      }
+    }
+
+    function slide(row) {
+      let arr = row.filter(val => val);
+      for (let i = 0; i < arr.length - 1; i++) {
+        if (arr[i] === arr[i+1]) {
+          arr[i] *= 2;
+          score += arr[i];
+          arr[i+1] = 0;
+          playMergeSound();
+        }
+      }
+      arr = arr.filter(val => val);
+      while (arr.length < boardSize) arr.push(0);
+      return arr;
+    }
+
+    function move(dir) {
+      if (!gameActive) return;
+
+      let oldBoard = JSON.stringify(board);
+
+      if (dir === 'left') {
+        for (let r = 0; r < boardSize; r++) board[r] = slide(board[r]);
+      } else if (dir === 'right') {
+        for (let r = 0; r < boardSize; r++) board[r] = slide(board[r].reverse()).reverse();
+      } else if (dir === 'up') {
+        for (let c = 0; c < boardSize; c++) {
+          let row = [board[0][c], board[1][c], board[2][c], board[3][c]];
+          row = slide(row);
+          for (let r = 0; r < boardSize; r++) board[r][c] = row[r];
+        }
+      } else if (dir === 'down') {
+        for (let c = 0; c < boardSize; c++) {
+          let row = [board[0][c], board[1][c], board[2][c], board[3][c]];
+          row = slide(row.reverse()).reverse();
+          for (let r = 0; r < boardSize; r++) board[r][c] = row[r];
+        }
+      }
+
+      if (JSON.stringify(board) !== oldBoard) {
+        addRandomTile();
+        renderBoard();
+        checkGameStatus();
+      }
+    }
+
+    function checkGameStatus() {
+      if (score >= targetScore) {
+        advancePhase();
+        return;
+      }
+
+      let hasEmpty = false;
+      let canMerge = false;
+      for (let r = 0; r < boardSize; r++) {
+        for (let c = 0; c < boardSize; c++) {
+          if (board[r][c] === 0) hasEmpty = true;
+          if (c < 3 && board[r][c] === board[r][c+1]) canMerge = true;
+          if (r < 3 && board[r][c] === board[r+1][c]) canMerge = true;
+        }
+      }
+
+      if (!hasEmpty && !canMerge && timeLeft > 0) {
+        endGame(false, "Sem movimentos disponíveis!");
+      }
+    }
+
+    // Suporte Gestos de Toque (Touch / Swipe)
+    const gameContainer = document.getElementById('gameContainer');
+    let startX = 0, startY = 0;
+
+    gameContainer.addEventListener('touchstart', (e) => {
+      if (!gameActive) return;
+      if (e.touches.length > 0) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    gameContainer.addEventListener('touchend', (e) => {
+      if (!gameActive) return;
+      if (e.changedTouches.length > 0) {
+        let dx = e.changedTouches[0].clientX - startX;
+        let dy = e.changedTouches[0].clientY - startY;
+
+        if (Math.abs(dx) > Math.abs(dy)) {
+          if (Math.abs(dx) > 25) {
+            move(dx > 0 ? 'right' : 'left');
+          }
+        } else {
+          if (Math.abs(dy) > 25) {
+            move(dy > 0 ? 'down' : 'up');
+          }
+        }
+      }
+    }, { passive: true });
+
+    // Suporte Mouse (Drag)
+    let isMouseDown = false;
+    gameContainer.addEventListener('mousedown', (e) => {
+      if (!gameActive) return;
+      isMouseDown = true;
+      startX = e.clientX;
+      startY = e.clientY;
+    });
+
+    gameContainer.addEventListener('mouseup', (e) => {
+      if (!gameActive || !isMouseDown) return;
+      isMouseDown = false;
+      let dx = e.clientX - startX;
+      let dy = e.clientY - startY;
+
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (Math.abs(dx) > 25) {
+          move(dx > 0 ? 'right' : 'left');
+        }
+      } else {
+        if (Math.abs(dy) > 25) {
+          move(dy > 0 ? 'down' : 'up');
+        }
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') move('left');
+      if (e.key === 'ArrowRight') move('right');
+      if (e.key === 'ArrowUp') move('up');
+      if (e.key === 'ArrowDown') move('down');
+    });
+
+    function startCountdown() {
+      if (currentPhase > 30) {
+        alert("Parabéns! Todas as 30 fases diárias já foram concluídas. Aguarde o reset às 21:00.");
+        window.location.href = "../index.html";
+        return;
+      }
+
+      initAudio();
+      btnGroup.style.display = 'none';
+      countdownBox.style.display = 'block';
+      let count = 3;
+      countdownNum.innerText = count;
+
+      const cdInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownNum.innerText = count;
+        } else if (count === 0) {
+          countdownNum.innerText = "READY!";
+        } else {
+          clearInterval(cdInterval);
+          countdownBox.style.display = 'none';
+          overlay.classList.add('hidden');
+          runGame();
+        }
+      }, 750);
+    }
+
+    function runGame() {
+      const cfg = getPhaseConfig(currentPhase);
+      targetScore = cfg.targetScore;
+      score = 0;
+      timeLeft = cfg.timeLimit;
+      board = [
+        [0,0,0,0],
+        [0,0,0,0],
+        [0,0,0,0],
+        [0,0,0,0]
+      ];
+      gameActive = true;
+
+      addRandomTile();
+      addRandomTile();
+      renderBoard();
+
+      uiStage.innerText = `Nível ${cfg.level} - Fase ${currentPhase}/30`;
+      uiTimer.innerText = `${timeLeft}s`;
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        uiTimer.innerText = `${timeLeft}s`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          if (score < targetScore) {
+            endGame(false, "O tempo acabou antes de atingir a meta!");
+          }
+        }
+      }, 1000);
+    }
+
+    function advancePhase() {
+      gameActive = false;
+      clearInterval(timerInterval);
+
+      let nextPhase = currentPhase + 1;
+      localStorage.setItem('crypto_2048_saved_stage', nextPhase.toString());
+
+      if (nextPhase > 30) {
+        window.location.href = `../sync.html?game=crypto_2048&stage=31`;
+        return;
+      }
+
+      window.location.href = `../sync.html?game=crypto_2048&stage=${nextPhase}`;
+    }
+
+    function endGame(won, reason) {
+      gameActive = false;
+      clearInterval(timerInterval);
+
+      const cfg = getPhaseConfig(currentPhase);
+      overlay.classList.remove('hidden');
+      levelBadge.innerText = `NÍVEL ${cfg.level} - FASE ${cfg.phase} DE 30`;
+
+      if (won) {
+        overlayTitle.innerText = "VITÓRIA COMPLETA!";
+        overlayTitle.style.color = "var(--accent-lime)";
+        overlayDesc.innerText = `${reason}\nVocê acumulou poder máximo de mineração!`;
+
+        let nextPhase = 31;
+        localStorage.setItem('crypto_2048_saved_stage', nextPhase.toString());
+        window.location.href = `../sync.html?game=crypto_2048&stage=${nextPhase}`;
+      } else {
+        overlayTitle.innerText = "GAME OVER";
+        overlayTitle.style.color = "var(--accent-red)";
+        overlayDesc.innerText = reason;
+
+        btnStart.innerText = "NOVA PARTIDA";
+        btnStart.style.display = 'block';
+        btnGames.innerText = "← Voltar aos Jogos";
+        btnGames.style.display = 'block';
+        btnHome.style.display = 'none';
+      }
+
+      btnGroup.style.display = 'flex';
+      if (!won) currentPhase = 1;
+    }
+
+    renderBoard();
+  </script>
+</body>
+</html>

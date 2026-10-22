@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MITRIA SPACE COMMAND - Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@500;600;700&display=swap');
+    body { background-color: #030712; color: #e2e8f0; font-family: 'Rajdhani', sans-serif; }
+    .font-orbitron { font-family: 'Orbitron', sans-serif; }
+    .glow-blue { box-shadow: 0 0 15px rgba(14, 165, 233, 0.4); }
+    .card-bg { background: linear-gradient(180deg, #0b132b 0%, #030712 100%); border: 1px solid #1e293b; }
+    .mining-room-canvas {
+      background: #111827 url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80') center/cover;
+      border: 2px solid #0284c7; border-radius: 12px; padding: 16px; height: 520px; overflow-y: auto; overflow-x: hidden; position: relative; box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+    }
+    .rack-stand { background: rgba(15, 23, 42, 0.95); border: 2px solid #0369a1; border-radius: 8px; padding: 6px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.7); }
+    .rack-shelf-level { background: #080e1a; border: 1px solid #1e3a8a; border-radius: 4px; height: 36px; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; padding: 2px; gap: 2px; }
+    .slot-unit { background: #020617; border: 1px dashed #0369a1; border-radius: 3px; flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .slot-unit:hover { border-color: #38bdf8; background: #0f172a; }
+    #side-menu { transition: transform 0.3s ease-in-out; }
+    #side-menu.closed { transform: translateX(100%); }
+    #side-menu.open { transform: translateX(0); }
+  </style>
+</head>
+<body class="min-h-screen pb-24 relative overflow-x-hidden">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-[#070f1e]/95 backdrop-blur-md border-b border-slate-800 px-4 py-3">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <div class="w-10 h-10 border-2 border-cyan-400 rotate-45 flex items-center justify-center bg-cyan-950/40 glow-blue">
+          <i class="fa-solid fa-cube -rotate-45 text-cyan-400 text-lg"></i>
+        </div>
+        <div>
+          <h1 class="font-orbitron font-bold text-lg leading-none tracking-wider text-white">MITRIA</h1>
+          <span class="text-[10px] text-cyan-400 tracking-widest font-semibold uppercase">Space Command</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <div class="bg-slate-900 border border-slate-700 px-3 py-1.5 rounded flex items-center space-x-1">
+          <i class="fa-solid fa-gem text-cyan-400 text-xs"></i>
+          <span class="font-orbitron text-xs font-bold text-cyan-300" id="header-mth-balance">1000.00</span>
+          <span class="text-[9px] text-slate-400">MTH</span>
+        </div>
+        <button onclick="toggleMenu()" class="w-9 h-9 bg-slate-900 border border-slate-700 rounded-lg flex items-center justify-center text-cyan-400 hover:text-white transition">
+          <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MENU LATERAL COMPLETO -->
+  <div id="side-menu-overlay" onclick="toggleMenu()" class="hidden fixed inset-0 bg-black/70 z-50"></div>
+  <aside id="side-menu" class="closed fixed top-0 right-0 bottom-0 w-64 bg-[#0d1527] border-l border-slate-800 z-50 p-5 space-y-4 overflow-y-auto">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+      <div class="font-orbitron font-bold text-sm text-cyan-400">NAVEGAÇÃO</div>
+      <button onclick="toggleMenu()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <nav class="space-y-1 text-sm font-semibold text-slate-300">
+      <a href="index.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg bg-slate-800 text-cyan-400"><i class="fa-solid fa-house w-5 text-center"></i><span>Home</span></a>
+      <a href="profile.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-user w-5 text-center"></i><span>Profile</span></a>
+      <a href="wallet.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-wallet w-5 text-center"></i><span>Wallet</span></a>
+      <a href="games/index.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-gamepad w-5 text-center"></i><span>Games</span></a>
+      <a href="market.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-cart-shopping w-5 text-center"></i><span>Market</span></a>
+      <a href="inventory.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-bag-shopping w-5 text-center"></i><span>Inventory</span></a>
+      <a href="merge.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-screwdriver-wrench w-5 text-center"></i><span>Merge Center</span></a>
+      <a href="tournaments.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-crown w-5 text-center"></i><span>Tournaments</span></a>
+      <a href="rankings.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-trophy w-5 text-center"></i><span>Rankings</span></a>
+      <a href="referral.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-bullhorn w-5 text-center"></i><span>Referral Program</span></a>
+      <a href="offerwalls.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-list-check w-5 text-center"></i><span>Offerwalls</span></a>
+      <a href="about.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-regular fa-lightbulb w-5 text-center"></i><span>About</span></a>
+      <a href="faq.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-regular fa-circle-question w-5 text-center"></i><span>FAQ</span></a>
+      <div class="pt-4 border-t border-slate-800">
+        <a href="login.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-950/40"><i class="fa-solid fa-right-from-bracket w-5 text-center"></i><span>Log out</span></a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- HOME CONTENT -->
+  <main class="max-w-md mx-auto px-4 pt-4 space-y-4">
+    <div class="flex items-center justify-between text-xs">
+      <div>
+        <span class="text-cyan-400 font-bold uppercase tracking-wider text-[10px]">Mitria Network / Dashboard</span>
+        <h2 class="font-orbitron font-extrabold text-xl text-white tracking-widest">SPACE COMMAND</h2>
+      </div>
+      <div class="flex items-center space-x-1.5 bg-sky-950/50 border border-sky-500/30 px-2.5 py-1 rounded-full">
+        <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+        <span class="text-[10px] font-bold text-sky-300 tracking-wider">ONLINE</span>
+      </div>
+    </div>
+
+    <!-- Mission Pass -->
+    <div class="card-bg rounded-xl p-4 border-amber-500/30 relative overflow-hidden">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-gem text-amber-400 text-lg"></i>
+          <h3 class="font-orbitron font-bold text-base text-white">Mission Pass <span class="text-slate-400 font-normal text-xs">· Temporada 01</span></h3>
+        </div>
+        <span class="bg-slate-900/90 border border-slate-700 text-cyan-400 text-[11px] font-orbitron px-2 py-0.5 rounded font-semibold">74D 02:22:15</span>
+      </div>
+    </div>
+
+    <!-- Telemetria Dinâmica -->
+    <div class="card-bg rounded-xl p-4 space-y-3">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-bars-staggered text-cyan-400"></i>
+          <h3 class="font-orbitron font-bold text-sm text-white">Telemetria de mineração</h3>
+        </div>
+        <span class="bg-cyan-950 text-cyan-400 text-[9px] font-bold px-2 py-0.5 rounded border border-cyan-800">AO VIVO</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+          <div class="text-[10px] text-slate-400">Meu Poder Total (Jogos)</div>
+          <div class="font-orbitron font-bold text-sm text-cyan-300" id="telemetry-user-power">0.0 HS</div>
+        </div>
+        <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
+          <div class="text-[10px] text-slate-400">Pool Global da Rede</div>
+          <div class="font-orbitron font-bold text-sm text-amber-300" id="telemetry-global-power">3.812 Eh/s</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SALA DE MINERAÇÃO -->
+    <div class="space-y-2">
+      <div class="flex justify-between items-center px-1">
+        <h3 class="font-orbitron font-bold text-sm text-white">SALA DE MINERAÇÃO (12 ESTANTES)</h3>
+        <span class="text-[10px] text-emerald-400 font-bold">● SCROLL ATIVO</span>
+      </div>
+
+      <div class="mining-room-canvas">
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Rack Rig #1 -->
+          <div class="rack-stand">
+            <div class="text-[8px] font-orbitron text-cyan-400 text-center mb-1">RACK RIG #1</div>
+            <div class="rack-shelf-level">
+              <div class="slot-unit"><i class="fa-solid fa-fan text-cyan-400 text-xs fa-spin"></i></div>
+              <div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div>
+            </div>
+            <div class="rack-shelf-level"><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div></div>
+            <div class="rack-shelf-level"><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div></div>
+            <div class="rack-shelf-level"><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div></div>
+          </div>
+
+          <!-- Rack Rig #2 -->
+          <div class="rack-stand">
+            <div class="text-[8px] font-orbitron text-cyan-400 text-center mb-1">RACK RIG #2</div>
+            <div class="rack-shelf-level"><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div></div>
+            <div class="rack-shelf-level"><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div></div>
+            <div class="rack-shelf-level"><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div></div>
+            <div class="rack-shelf-level"><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div></div>
+          </div>
+
+          <script>
+            for(let i=3; i<=12; i++) {
+              document.write(`
+                <div class="rack-stand border-dashed border-slate-700 opacity-60 flex flex-col items-center justify-center py-6 text-center">
+                  <div class="text-[8px] font-orbitron text-slate-500 mb-1">RACK RIG #${i}</div>
+                  <i class="fa-solid fa-lock text-slate-600 text-sm mb-1"></i>
+                  <span class="text-[8px] text-slate-400">Compre na Loja</span>
+                </div>
+              `);
+            }
+          </script>
+        </div>
+      </div>
+
+      <!-- Seletor de Salas -->
+      <div class="flex items-center justify-between bg-slate-900 border border-slate-800 p-2 rounded-xl mt-2">
+        <div class="flex space-x-1.5">
+          <button class="w-8 h-8 rounded bg-cyan-400 text-slate-950 font-bold text-xs font-orbitron">0</button>
+          <button class="w-8 h-8 rounded bg-slate-800 text-slate-300 font-bold text-xs font-orbitron">1</button>
+          <button class="w-8 h-8 rounded bg-slate-800 text-slate-300 font-bold text-xs font-orbitron">2</button>
+          <button onclick="alert('Comprar nova sala!')" class="w-8 h-8 rounded bg-cyan-950 border border-cyan-500/50 text-cyan-400 font-bold text-xs"><i class="fa-solid fa-plus"></i></button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('side-menu');
+      const overlay = document.getElementById('side-menu-overlay');
+      if (menu.classList.contains('closed')) {
+        menu.classList.remove('closed'); menu.classList.add('open'); overlay.classList.remove('hidden');
+      } else {
+        menu.classList.remove('open'); menu.classList.add('closed'); overlay.classList.add('hidden');
+      }
+    }
+
+    // Formata o Hash Power em HS, GHS, THS, EHS
+    function formatHashPower(hsValue) {
+      if (hsValue >= 1000000000000) return (hsValue / 1000000000000).toFixed(2) + ' PHS';
+      else if (hsValue >= 1000000000) return (hsValue / 1000000000).toFixed(2) + ' THS';
+      else if (hsValue >= 1000) return (hsValue / 1000).toFixed(2) + ' GHS';
+      else return hsValue.toFixed(1) + ' HS';
+    }
+
+    // Calcula o poder ganho no Token Blaster por fase/nível
+    function calcTokenBlasterPower(stage) {
+      let maxStage = Math.min(stage, 31);
+      let total = 0;
+      for (let s = 1; s < maxStage; s++) {
+        let level = Math.floor((s - 1) / 5) + 1;
+        let phasePower = 21 * (1 + (level - 1) * 0.20);
+        total += phasePower;
+      }
+      return total;
+    }
+
+    // Atualiza a Telemetria da Home Lendo o Progresso dos 5 Minigames
+    function updateTelemetry() {
+      let tbStage = parseInt(localStorage.getItem('tb_saved_stage') || '1');
+      let ccStage = parseInt(localStorage.getItem('coin_catcher_saved_stage') || '1');
+      let m3Stage = parseInt(localStorage.getItem('match3_saved_stage') || '1');
+      let c2048Stage = parseInt(localStorage.getItem('crypto_saved_stage') || '1');
+      let adStage = parseInt(localStorage.getItem('aero_dash_saved_stage') || '1');
+
+      let tbHS = calcTokenBlasterPower(tbStage);
+      let ccHS = (Math.min(ccStage, 31) - 1) * 15;
+      let m3HS = (Math.min(m3Stage, 31) - 1) * 15;
+      let c2048HS = (Math.min(c2048Stage, 31) - 1) * 16.5;
+      let adHS = (Math.min(adStage, 31) - 1) * 16.5;
+
+      let bonusHS = parseInt(localStorage.getItem('knd_bonus_hash_extra') || '0');
+      let totalUserPower = tbHS + ccHS + m3HS + c2048HS + adHS + bonusHS;
+
+      // Exibe no Card de Telemetria
+      document.getElementById('telemetry-user-power').innerText = formatHashPower(totalUserPower);
+      
+      // O Pool Global reflete a soma base da rede (3.812 Eh/s) + seu avanço
+      if (totalUserPower > 0) {
+        document.getElementById('telemetry-global-power').innerText = (3.812 + (totalUserPower / 1000000000000)).toFixed(3) + ' Eh/s';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', updateTelemetry);
+  </script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Center Sync - KND Arcade</title>
+  <style>
+    :root {
+      --bg-dark: #030712;
+      --card-bg: #0b0f19;
+      --accent-cyan: #06b6d4;
+      --accent-lime: #a3e635;
+      --accent-gold: #eab308;
+      --text-gray: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #fff;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .sync-container {
+      width: 100%;
+      max-width: 500px;
+      background: var(--card-bg);
+      border: 1px solid #1e293b;
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(6, 182, 212, 0.15);
+    }
+
+    .sync-title {
+      font-size: 18px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-lime));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 200px;
+      border-radius: 12px;
+      border: 1px solid #1e293b;
+      background: #020617;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 10px;
+      background: #0f172a;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #334155;
+      margin-bottom: 16px;
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-lime));
+      transition: width 0.1s linear;
+    }
+
+    .bonus-box {
+      display: none;
+      width: 100%;
+      background: rgba(234, 179, 8, 0.15);
+      border: 1px solid var(--accent-gold);
+      color: var(--accent-gold);
+      padding: 10px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 12px;
+      margin-bottom: 16px;
+    }
+
+    .btn-next {
+      display: none;
+      width: 100%;
+      padding: 12px;
+      background: var(--accent-lime);
+      color: #000;
+      font-weight: 900;
+      font-size: 14px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sync-container">
+    <h2 class="sync-title">TRANSMISSÃO DE DADOS DO DATA CENTER</h2>
+    <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 14px;">Transferindo pacotes de Hash Power para o servidor...</p>
+
+    <canvas id="dcCanvas" width="500" height="200"></canvas>
+
+    <div class="progress-bar-bg">
+      <div id="progress-fill" class="progress-bar-fill"></div>
+    </div>
+
+    <div id="bonus-card" class="bonus-box">
+      🎉 BÔNUS ESPECIAL DE MINERAÇÃO (5% CHANCE)! +100 HS EXTRA CONCEDIDO!
+    </div>
+
+    <button id="btn-advance" class="btn-next" onclick="goToReward()">AVANÇAR PARA A RECOMPENSA ➔</button>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const game = urlParams.get('game') || 'aero_dash';
+    const stage = parseInt(urlParams.get('stage') || '1');
+
+    // Registrar o timestamp de conclusão do jogo para iniciar o Cooldown no Game Hub
+    localStorage.setItem(`knd_last_play_${game}`, Date.now().toString());
+
+    // Incrementar partidas jogadas
+    let currentGames = parseInt(localStorage.getItem('knd_total_games_played') || '0');
+    localStorage.setItem('knd_total_games_played', (currentGames + 1).toString());
+
+    const canvas = document.getElementById('dcCanvas');
+    const ctx = canvas.getContext('2d');
+    const progressFill = document.getElementById('progress-fill');
+    const bonusCard = document.getElementById('bonus-card');
+    const btnAdvance = document.getElementById('btn-advance');
+
+    let startTime = Date.now();
+    let durationMs = 2500; // 2.5s para transmissão fluida dos dados
+    let wonBonus = false;
+
+    function update() {
+      let elapsed = Date.now() - startTime;
+      let progress = Math.min(100, (elapsed / durationMs) * 100);
+
+      progressFill.style.width = `${progress}%`;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#020617'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#06b6d4';
+      ctx.fillRect(50, 40, 80, 120); ctx.strokeRect(50, 40, 80, 120);
+      ctx.fillRect(370, 40, 80, 120); ctx.strokeRect(370, 40, 80, 120);
+
+      if (progress < 100) {
+        requestAnimationFrame(update);
+      } else {
+        // Sorteio de 5% de chance de Bônus Extra
+        if (Math.random() < 0.05) {
+          wonBonus = true;
+          bonusCard.style.display = 'block';
+          let bonusHS = parseInt(localStorage.getItem('knd_bonus_hash_extra') || '0');
+          localStorage.setItem('knd_bonus_hash_extra', bonusHS + 100);
+        }
+        btnAdvance.style.display = 'block';
+      }
+    }
+
+    function goToReward() {
+      window.location.href = `reward.html?game=${game}&stage=${stage}&bonus=${wonBonus ? 1 : 0}`;
+    }
+
+    requestAnimationFrame(update);
+  </script>
+</body>
+</html>

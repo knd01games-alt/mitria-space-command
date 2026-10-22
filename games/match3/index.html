@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Match-3 Coin Puzzle - Professional Edition</title>
+  <style>
+    :root {
+      --bg-dark: #030712;
+      --card-bg: #0d1117;
+      --accent-cyan: #06b6d4;
+      --accent-lime: #a3e635;
+      --accent-red: #ef4444;
+      --text-gray: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #fff;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 10px;
+      overflow-x: hidden;
+    }
+
+    #game-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+      background: var(--card-bg);
+      border: 2px solid #21262d;
+      border-radius: 12px;
+      box-shadow: 0 0 35px rgba(6, 182, 212, 0.2);
+      overflow: hidden;
+    }
+
+    .game-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #090d16;
+      border-bottom: 1px solid #21262d;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .topbar-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .topbar-label {
+      font-size: 9px;
+      color: var(--text-gray);
+      text-transform: uppercase;
+    }
+
+    .topbar-val {
+      font-size: 14px;
+      color: var(--accent-cyan);
+    }
+
+    .audio-btn {
+      background: #161b22;
+      border: 1px solid #30363d;
+      color: #fff;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 800 / 480;
+      background: #030712;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 45px;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 45px);
+      background: rgba(3, 7, 18, 0.95);
+      backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .overlay.hidden {
+      display: none;
+    }
+
+    .overlay-title {
+      font-size: 24px;
+      font-weight: 900;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .overlay-desc {
+      font-size: 12px;
+      color: var(--text-gray);
+      margin-bottom: 20px;
+      max-width: 290px;
+      line-height: 1.4;
+    }
+
+    .countdown-number {
+      font-size: 64px;
+      font-weight: 900;
+      color: var(--accent-cyan);
+      animation: pulse 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(0.9); }
+      to { transform: scale(1.1); }
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 240px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+
+    .btn-success {
+      background: var(--accent-lime);
+      color: #000;
+    }
+
+    .btn-secondary {
+      background: #30363d;
+      color: #fff;
+    }
+
+    .btn-home {
+      background: #161b22;
+      color: var(--text-gray);
+      border: 1px solid #30363d;
+    }
+
+    .level-badge {
+      background: var(--accent-lime);
+      color: #000;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrapper">
+    <div class="game-topbar">
+      <div class="topbar-item">
+        <span class="topbar-label">Nível / Fase</span>
+        <span class="topbar-val" id="ui-stage">Nível 1 - Fase 1/30</span>
+      </div>
+      <div class="topbar-item">
+        <span class="topbar-label">Pontos / Meta</span>
+        <span class="topbar-val" id="ui-score" style="color: var(--accent-lime);">0 / 750</span>
+      </div>
+      <div class="topbar-item">
+        <span class="topbar-label">Tempo</span>
+        <span class="topbar-val" id="ui-timer" style="color: #f59e0b;">40s</span>
+      </div>
+      <button class="audio-btn" onclick="toggleAudio()">
+        <span id="audio-icon">🔊</span>
+      </button>
+    </div>
+
+    <canvas id="gameCanvas" width="800" height="480"></canvas>
+
+    <div id="overlay" class="overlay">
+      <span id="level-badge" class="level-badge">NÍVEL 1 - FASE 1 DE 30</span>
+      <h2 id="overlay-title" class="overlay-title" style="color: var(--accent-cyan);">MATCH-3 COIN PUZZLE</h2>
+      <p id="overlay-desc" class="overlay-desc">
+        Arraste de uma moeda para a outra para combiná-las! Alinhe 3 ou mais moedas 3D idênticas.
+      </p>
+
+      <div id="countdown-box" style="display: none;">
+        <div id="countdown-num" class="countdown-number">3</div>
+      </div>
+
+      <div id="btn-group" class="btn-group">
+        <button id="btn-start" class="btn btn-primary" onclick="startCountdown()">INICIAR JOGO</button>
+        <button id="btn-finish" class="btn btn-success" style="display: none;" onclick="goToSync()">CONCLUIR FASE ➔</button>
+        <a id="btn-games" href="../index.html" class="btn btn-secondary">← Voltar para os Games</a>
+        <a id="btn-home" href="../../index.html" class="btn btn-home" style="display: none;">🏠 Home Page</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlay-title');
+    const overlayDesc = document.getElementById('overlay-desc');
+    const levelBadge = document.getElementById('level-badge');
+    const countdownBox = document.getElementById('countdown-box');
+    const countdownNum = document.getElementById('countdown-num');
+    const btnGroup = document.getElementById('btn-group');
+    const btnStart = document.getElementById('btn-start');
+    const btnFinish = document.getElementById('btn-finish');
+    const btnGames = document.getElementById('btn-games');
+    const btnHome = document.getElementById('btn-home');
+
+    const uiStage = document.getElementById('ui-stage');
+    const uiScore = document.getElementById('ui-score');
+    const uiTimer = document.getElementById('ui-timer');
+    const audioIcon = document.getElementById('audio-icon');
+
+    let audioEnabled = true;
+    let audioCtx = null;
+    let bgMusicTimer = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      audioIcon.innerText = audioEnabled ? '🔊' : '🔇';
+      if (!audioEnabled && bgMusicTimer) {
+        clearInterval(bgMusicTimer);
+        bgMusicTimer = null;
+      } else if (audioEnabled && gameActive) {
+        startBgMusic();
+      }
+    }
+
+    function playMatchSound() {
+      if (!audioEnabled) return;
+      initAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function playComboSound() {
+      if (!audioEnabled) return;
+      initAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1600, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.15);
+    }
+
+    function startBgMusic() {
+      if (!audioEnabled || bgMusicTimer) return;
+      initAudio();
+      const notes = [300, 350, 400, 450];
+      let step = 0;
+      bgMusicTimer = setInterval(() => {
+        if (!gameActive || !audioEnabled) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(notes[step % notes.length], audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.25);
+        step++;
+      }, 600);
+    }
+
+    function stopBgMusic() {
+      if (bgMusicTimer) {
+        clearInterval(bgMusicTimer);
+        bgMusicTimer = null;
+      }
+    }
+
+    const COIN_POOL = [
+      { id: 0, symbol: 'MTR', base: '#0099ff', glow: '#00ffff', dark: '#003366', text: '#ffffff' },
+      { id: 1, symbol: 'BTC', base: '#ff6600', glow: '#ffcc00', dark: '#662200', text: '#ffffff' },
+      { id: 2, symbol: 'DOGE', base: '#e6b800', glow: '#fff280', dark: '#4d3900', text: '#ffffff' },
+      { id: 3, symbol: 'LTC', base: '#2563eb', glow: '#93c5fd', dark: '#1e3a8a', text: '#ffffff' },
+      { id: 4, symbol: 'ETH', base: '#9333ea', glow: '#d8b4fe', dark: '#581c87', text: '#ffffff' },
+      { id: 5, symbol: 'BNB', base: '#ca8a04', glow: '#fef08a', dark: '#713f12', text: '#ffffff' },
+      { id: 6, symbol: 'TRX', base: '#dc2626', glow: '#fca5a5', dark: '#7f1d1d', text: '#ffffff' }
+    ];
+
+    const gridCols = 8;
+    const gridRows = 6;
+    const tileSize = 66;
+    const coinRadius = 26;
+    const gridOffsetX = (800 - (gridCols * tileSize)) / 2;
+    const gridOffsetY = (480 - (gridRows * tileSize)) / 2 + 15;
+
+    let board = [];
+    let currentPhase = parseInt(localStorage.getItem('match3_saved_stage') || '1');
+    let score = 0;
+    let targetScore = 750;
+    let timeLeft = 40;
+    let gameActive = false;
+    let timerInterval = null;
+    let comboCount = 0;
+    let animating = false;
+
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let dragRow = -1, dragCol = -1;
+
+    const stars = Array.from({ length: 60 }, () => ({
+      x: Math.random() * 800,
+      y: Math.random() * 480,
+      size: Math.random() * 2 + 0.5,
+      alpha: Math.random()
+    }));
+
+    function getPhaseConfig(phase) {
+      const level = Math.min(6, Math.floor((phase - 1) / 5) + 1);
+      let numTypes = 5;
+      if (level >= 3 && level < 5) numTypes = 6;
+      if (level >= 5) numTypes = 7;
+
+      return {
+        level: level,
+        phase: phase,
+        numTypes: numTypes,
+        targetScore: 600 + (phase * 75)
+      };
+    }
+
+    function initBoard() {
+      const cfg = getPhaseConfig(currentPhase);
+      targetScore = cfg.targetScore;
+      score = 0;
+
+      do {
+        board = [];
+        for (let r = 0; r < gridRows; r++) {
+          let row = [];
+          for (let c = 0; c < gridCols; c++) {
+            row.push(Math.floor(Math.random() * cfg.numTypes));
+          }
+          board.push(row);
+        }
+      } while (checkInitialMatches());
+    }
+
+    function checkInitialMatches() {
+      for (let r = 0; r < gridRows; r++) {
+        for (let c = 0; c < gridCols; c++) {
+          let val = board[r][c];
+          if (c < gridCols - 2 && val === board[r][c+1] && val === board[r][c+2]) return true;
+          if (r < gridRows - 2 && val === board[r+1][c] && val === board[r+2][c]) return true;
+        }
+      }
+      return false;
+    }
+
+    function drawBackground() {
+      ctx.fillStyle = '#030712';
+      ctx.fillRect(0, 0, 800, 480);
+
+      const neb = ctx.createRadialGradient(400, 240, 40, 400, 240, 400);
+      neb.addColorStop(0, 'rgba(6, 182, 212, 0.12)');
+      neb.addColorStop(0.5, 'rgba(110, 231, 183, 0.05)');
+      neb.addColorStop(1, 'rgba(3, 7, 18, 0)');
+      ctx.fillStyle = neb;
+      ctx.fillRect(0, 0, 800, 480);
+
+      stars.forEach(s => {
+        s.alpha += (Math.random() - 0.5) * 0.08;
+        if (s.alpha < 0.2) s.alpha = 0.2;
+        if (s.alpha > 1) s.alpha = 1;
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.fillStyle = 'rgba(13, 17, 23, 0.85)';
+      ctx.fillRect(gridOffsetX - 12, gridOffsetY - 12, (gridCols * tileSize) + 24, (gridRows * tileSize) + 24);
+      ctx.strokeStyle = 'rgba(33, 38, 45, 0.9)';
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(gridOffsetX - 12, gridOffsetY - 12, (gridCols * tileSize) + 24, (gridRows * tileSize) + 24);
+    }
+
+    function drawBoard() {
+      for (let r = 0; r < gridRows; r++) {
+        for (let c = 0; c < gridCols; c++) {
+          let typeId = board[r][c];
+          if (typeId === -1) continue;
+
+          let coin = COIN_POOL[typeId];
+          let x = gridOffsetX + c * tileSize + tileSize / 2;
+          let y = gridOffsetY + r * tileSize + tileSize / 2;
+
+          ctx.save();
+          ctx.translate(x, y);
+
+          ctx.shadowColor = coin.glow;
+          ctx.shadowBlur = 15;
+
+          const sphereGrad = ctx.createRadialGradient(-7, -7, 3, 0, 0, coinRadius);
+          sphereGrad.addColorStop(0, coin.glow);
+          sphereGrad.addColorStop(0.35, coin.base);
+          sphereGrad.addColorStop(1, coin.dark);
+          ctx.fillStyle = sphereGrad;
+          ctx.beginPath();
+          ctx.arc(0, 0, coinRadius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.shadowBlur = 0;
+
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.arc(0, 0, coinRadius - 4, 0, Math.PI * 2);
+          ctx.stroke();
+
+          const highGrad = ctx.createRadialGradient(-8, -8, 1, -8, -8, 9);
+          highGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+          highGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          ctx.fillStyle = highGrad;
+          ctx.beginPath();
+          ctx.arc(0, 0, coinRadius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = coin.text;
+          ctx.font = 'bold 12px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(coin.symbol, 0, 1);
+
+          ctx.restore();
+        }
+      }
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBackground();
+      drawBoard();
+
+      if (comboCount > 1) {
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 22px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`COMBO x${comboCount}!`, 400, 32);
+      }
+    }
+
+    function processMatches() {
+      let matches = [];
+      let specialClear = [];
+
+      for (let r = 0; r < gridRows; r++) {
+        let matchLen = 1;
+        for (let c = 0; c < gridCols; c++) {
+          let same = false;
+          if (c < gridCols - 1 && board[r][c] !== -1 && board[r][c] === board[r][c+1]) same = true;
+          if (same) {
+            matchLen++;
+          } else {
+            if (matchLen >= 3) {
+              let matchedType = board[r][c - 1];
+              if (matchLen === 5) {
+                for (let ro = 0; ro < gridRows; ro++) {
+                  for (let co = 0; co < gridCols; co++) {
+                    if (board[ro][co] === matchedType) specialClear.push({r: ro, c: co});
+                  }
+                }
+              } else if (matchLen === 4) {
+                for (let co = 0; co < gridCols; co++) specialClear.push({r: r, c: co});
+              }
+              for (let i = c - matchLen + 1; i <= c; i++) matches.push({r: r, c: i});
+            }
+            matchLen = 1;
+          }
+        }
+      }
+
+      for (let c = 0; c < gridCols; c++) {
+        let matchLen = 1;
+        for (let r = 0; r < gridRows; r++) {
+          let same = false;
+          if (r < gridRows - 1 && board[r][c] !== -1 && board[r][c] === board[r+1][c]) same = true;
+          if (same) {
+            matchLen++;
+          } else {
+            if (matchLen >= 3) {
+              let matchedType = board[r - 1][c];
+              if (matchLen === 5) {
+                for (let ro = 0; ro < gridRows; ro++) {
+                  for (let co = 0; co < gridCols; co++) {
+                    if (board[ro][co] === matchedType) specialClear.push({r: ro, c: co});
+                  }
+                }
+              } else if (matchLen === 4) {
+                for (let ro = 0; ro < gridRows; ro++) specialClear.push({r: ro, c: c});
+              }
+              for (let i = r - matchLen + 1; i <= r; i++) matches.push({r: i, c: c});
+            }
+            matchLen = 1;
+          }
+        }
+      }
+
+      let allCleared = [...matches, ...specialClear];
+      let uniqueCleared = [];
+      allCleared.forEach(m => {
+        if (!uniqueCleared.some(u => u.r === m.r && u.c === m.c)) uniqueCleared.push(m);
+      });
+
+      if (uniqueCleared.length > 0) {
+        comboCount++;
+        if (comboCount > 1) playComboSound();
+        else playMatchSound();
+
+        let points = uniqueCleared.length * 15 * Math.max(1, comboCount);
+        score += points;
+        uiScore.innerText = `${score} / ${targetScore}`;
+
+        uniqueCleared.forEach(m => { board[m.r][m.c] = -1; });
+        render();
+
+        setTimeout(() => { applyGravity(); }, 200);
+      } else {
+        comboCount = 0;
+        animating = false;
+        if (score >= targetScore) {
+          triggerPhaseComplete();
+        }
+      }
+    }
+
+    function applyGravity() {
+      const cfg = getPhaseConfig(currentPhase);
+      for (let c = 0; c < gridCols; c++) {
+        for (let r = gridRows - 1; r > 0; r--) {
+          if (board[r][c] === -1) {
+            let aboveR = r - 1;
+            while (aboveR >= 0 && board[aboveR][c] === -1) aboveR--;
+            if (aboveR >= 0) {
+              board[r][c] = board[aboveR][c];
+              board[aboveR][c] = -1;
+            } else {
+              board[r][c] = Math.floor(Math.random() * cfg.numTypes);
+            }
+          }
+        }
+      }
+      for (let c = 0; c < gridCols; c++) {
+        if (board[0][c] === -1) board[0][c] = Math.floor(Math.random() * cfg.numTypes);
+      }
+      render();
+      setTimeout(() => { processMatches(); }, 200);
+    }
+
+    function getCanvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+      };
+    }
+
+    function onTouchStart(e) {
+      if (!gameActive || animating) return;
+      const pos = getCanvasCoords(e);
+      const c = Math.floor((pos.x - gridOffsetX) / tileSize);
+      const r = Math.floor((pos.y - gridOffsetY) / tileSize);
+
+      if (r >= 0 && r < gridRows && c >= 0 && c < gridCols) {
+        isDragging = true;
+        dragRow = r;
+        dragCol = c;
+        startX = pos.x;
+        startY = pos.y;
+      }
+    }
+
+    function onTouchMove(e) {
+      if (!isDragging || animating) return;
+      const pos = getCanvasCoords(e);
+      let dx = pos.x - startX;
+      let dy = pos.y - startY;
+
+      if (Math.abs(dx) > 18 || Math.abs(dy) > 18) {
+        let targetR = dragRow;
+        let targetC = dragCol;
+
+        if (Math.abs(dx) > Math.abs(dy)) {
+          targetC += dx > 0 ? 1 : -1;
+        } else {
+          targetR += dy > 0 ? 1 : -1;
+        }
+
+        if (targetR >= 0 && targetR < gridRows && targetC >= 0 && targetC < gridCols) {
+          isDragging = false;
+          executeSwap(dragRow, dragCol, targetR, targetC);
+        }
+      }
+    }
+
+    function onTouchEnd() {
+      isDragging = false;
+    }
+
+    function executeSwap(r1, c1, r2, c2) {
+      animating = true;
+      let temp = board[r1][c1];
+      board[r1][c1] = board[r2][c2];
+      board[r2][c2] = temp;
+      render();
+
+      setTimeout(() => {
+        if (!testMatchAfterSwap()) {
+          let t = board[r1][c1];
+          board[r1][c1] = board[r2][c2];
+          board[r2][c2] = t;
+          animating = false;
+          render();
+        } else {
+          processMatches();
+        }
+      }, 200);
+    }
+
+    function testMatchAfterSwap() {
+      for (let r = 0; r < gridRows; r++) {
+        for (let c = 0; c < gridCols; c++) {
+          let val = board[r][c];
+          if (c < gridCols - 2 && val === board[r][c+1] && val === board[r][c+2]) return true;
+          if (r < gridRows - 2 && val === board[r+1][c] && val === board[r+2][c]) return true;
+        }
+      }
+      return false;
+    }
+
+    canvas.addEventListener('mousedown', onTouchStart);
+    canvas.addEventListener('mousemove', onTouchMove);
+    window.addEventListener('mouseup', onTouchEnd);
+
+    canvas.addEventListener('touchstart', onTouchStart, { passive: true });
+    canvas.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd);
+
+    function startCountdown() {
+      initAudio();
+      btnGroup.style.display = 'none';
+      countdownBox.style.display = 'block';
+      let count = 3;
+      countdownNum.innerText = count;
+
+      const cdInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownNum.innerText = count;
+        } else if (count === 0) {
+          countdownNum.innerText = "READY!";
+        } else {
+          clearInterval(cdInterval);
+          countdownBox.style.display = 'none';
+          overlay.classList.add('hidden');
+          runGame();
+        }
+      }, 750);
+    }
+
+    function runGame() {
+      const cfg = getPhaseConfig(currentPhase);
+      timeLeft = 40;
+      gameActive = true;
+      animating = false;
+      initBoard();
+
+      uiStage.innerText = `Nível ${cfg.level} - Fase ${currentPhase}/30`;
+      uiScore.innerText = `${score} / ${targetScore}`;
+      uiTimer.innerText = `${timeLeft}s`;
+      startBgMusic();
+      render();
+
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        uiTimer.innerText = `${timeLeft}s`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          if (score < targetScore) {
+            endGame(false, "O tempo acabou antes de atingir a pontuação!");
+          }
+        }
+      }, 1000);
+    }
+
+    function triggerPhaseComplete() {
+      gameActive = false;
+      stopBgMusic();
+      clearInterval(timerInterval);
+      overlay.classList.remove('hidden');
+
+      const cfg = getPhaseConfig(currentPhase);
+      levelBadge.innerText = `NÍVEL ${cfg.level} - FASE ${currentPhase} DE 30`;
+
+      if (currentPhase >= 30) {
+        overlayTitle.innerText = "PARABÉNS! JOGO CONCLUÍDO!";
+        overlayTitle.style.color = "var(--accent-lime)";
+        overlayDesc.innerText = "Você concluiu com sucesso todas as 30 fases do Match-3!";
+      } else {
+        overlayTitle.innerText = "FASE CONCLUÍDA!";
+        overlayTitle.style.color = "var(--accent-lime)";
+        overlayDesc.innerText = "Excelente combinação! Clique no botão abaixo para prosseguir e transferir os dados.";
+      }
+
+      btnStart.style.display = 'none';
+      btnFinish.style.display = 'block';
+      btnGames.style.display = 'block';
+      btnHome.style.display = 'none';
+      btnGroup.style.display = 'flex';
+    }
+
+    function goToSync() {
+      let nextPhase = currentPhase + 1;
+      localStorage.setItem('match3_saved_stage', nextPhase.toString());
+      if (nextPhase > 30) nextPhase = 31;
+      window.location.href = `../sync.html?game=match3&stage=${nextPhase}`;
+    }
+
+    function endGame(won, reason) {
+      gameActive = false;
+      stopBgMusic();
+      clearInterval(timerInterval);
+
+      const cfg = getPhaseConfig(currentPhase);
+      overlay.classList.remove('hidden');
+      levelBadge.innerText = `NÍVEL ${cfg.level} - FASE ${currentPhase} DE 30`;
+
+      if (won) {
+        triggerPhaseComplete();
+      } else {
+        overlayTitle.innerText = "GAME OVER";
+        overlayTitle.style.color = "var(--accent-red)";
+        overlayDesc.innerText = reason;
+
+        btnStart.innerText = "NOVA PARTIDA";
+        btnStart.style.display = 'block';
+        btnFinish.style.display = 'none';
+        btnGames.innerText = "← Voltar aos Jogos";
+        btnGames.style.display = 'block';
+        btnHome.style.display = 'none';
+        btnGroup.style.display = 'flex';
+        currentPhase = 1;
+      }
+    }
+
+    initBoard();
+    render();
+  </script>
+</body>
+</html>

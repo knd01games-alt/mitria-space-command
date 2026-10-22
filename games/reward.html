@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recompensa - KND Arcade</title>
+  <style>
+    :root {
+      --bg-dark: #030712;
+      --card-bg: #0b0f19;
+      --accent-cyan: #06b6d4;
+      --accent-lime: #a3e635;
+      --accent-gold: #eab308;
+      --text-gray: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #fff;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .reward-container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      border: 1px solid #1e293b;
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(163, 230, 53, 0.15);
+    }
+
+    .reward-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--accent-lime);
+      margin-bottom: 8px;
+    }
+
+    .reward-desc {
+      font-size: 13px;
+      color: var(--text-gray);
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .power-box {
+      width: 100%;
+      background: #060911;
+      border: 1px solid #30363d;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .power-label {
+      font-size: 11px;
+      color: var(--text-gray);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .power-value {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--accent-cyan);
+    }
+
+    .btn-hub {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent-cyan);
+      color: #000;
+      font-weight: 900;
+      font-size: 14px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.2s;
+    }
+
+    .btn-hub:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="reward-container">
+    <div style="font-size: 48px; margin-bottom: 10px;">🏆</div>
+    <h2 class="reward-title">FASE CONCLUÍDA COM SUCESSO!</h2>
+    <p class="reward-desc">O seu Hash Power foi extraído e computado com sucesso no ecossistema de mineração.</p>
+
+    <div class="power-box">
+      <span class="power-label">Status do Progresso</span>
+      <span class="power-value" id="status-txt">Fase Avançada</span>
+    </div>
+
+    <a href="index.html" class="btn-hub">VOLTAR PARA O GAME HUB ➔</a>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const game = urlParams.get('game') || 'game';
+    const stage = urlParams.get('stage') || '1';
+    const bonus = urlParams.get('bonus') === '1';
+
+    const statusTxt = document.getElementById('status-txt');
+    if (stage > 30) {
+      statusTxt.innerText = "Nível Máximo Concluído!";
+      statusTxt.style.color = "var(--accent-lime)";
+    } else {
+      statusTxt.innerText = `Avançado para a Fase ${stage}`;
+    }
+  </script>
+</body>
+</html>

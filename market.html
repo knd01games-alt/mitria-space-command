@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MITRIA SPACE COMMAND - Market</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@500;600;700&display=swap');
+    body { background-color: #030712; color: #e2e8f0; font-family: 'Rajdhani', sans-serif; }
+    .font-orbitron { font-family: 'Orbitron', sans-serif; }
+    .card-bg { background: linear-gradient(180deg, #0b132b 0%, #030712 100%); border: 1px solid #1e293b; }
+    #side-menu { transition: transform 0.3s ease-in-out; }
+    #side-menu.closed { transform: translateX(100%); }
+    #side-menu.open { transform: translateX(0); }
+  </style>
+</head>
+<body class="min-h-screen pb-24 relative overflow-x-hidden">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-[#070f1e]/95 backdrop-blur-md border-b border-slate-800 px-4 py-3">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <div class="w-10 h-10 border-2 border-cyan-400 rotate-45 flex items-center justify-center bg-cyan-950/40">
+          <i class="fa-solid fa-cube -rotate-45 text-cyan-400 text-lg"></i>
+        </div>
+        <div>
+          <h1 class="font-orbitron font-bold text-lg leading-none tracking-wider text-white">MITRIA</h1>
+          <span class="text-[10px] text-cyan-400 tracking-widest font-semibold uppercase">Space Command</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <div class="bg-slate-900 border border-slate-700 px-3 py-1.5 rounded flex items-center space-x-1">
+          <i class="fa-solid fa-gem text-cyan-400 text-xs"></i>
+          <span class="font-orbitron text-xs font-bold text-cyan-300">1000.00</span>
+          <span class="text-[9px] text-slate-400">MTH</span>
+        </div>
+        <button onclick="toggleMenu()" class="w-9 h-9 bg-slate-900 border border-slate-700 rounded-lg flex items-center justify-center text-cyan-400 hover:text-white transition">
+          <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MENU LATERAL COMPLETO -->
+  <div id="side-menu-overlay" onclick="toggleMenu()" class="hidden fixed inset-0 bg-black/70 z-50"></div>
+  <aside id="side-menu" class="closed fixed top-0 right-0 bottom-0 w-64 bg-[#0d1527] border-l border-slate-800 z-50 p-5 space-y-4 overflow-y-auto">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+      <div class="font-orbitron font-bold text-sm text-cyan-400">NAVEGAÇÃO</div>
+      <button onclick="toggleMenu()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <nav class="space-y-1 text-sm font-semibold text-slate-300">
+      <a href="index.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-house w-5 text-center"></i><span>Home</span></a>
+      <a href="profile.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-user w-5 text-center"></i><span>Profile</span></a>
+      <a href="wallet.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-wallet w-5 text-center"></i><span>Wallet</span></a>
+      <a href="games/index.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-gamepad w-5 text-center"></i><span>Games</span></a>
+      <a href="market.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg bg-slate-800 text-cyan-400"><i class="fa-solid fa-cart-shopping w-5 text-center"></i><span>Market</span></a>
+      <a href="inventory.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-bag-shopping w-5 text-center"></i><span>Inventory</span></a>
+      <a href="merge.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-screwdriver-wrench w-5 text-center"></i><span>Merge Center</span></a>
+      <a href="tournaments.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-crown w-5 text-center"></i><span>Tournaments</span></a>
+      <a href="rankings.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-trophy w-5 text-center"></i><span>Rankings</span></a>
+      <a href="referral.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-bullhorn w-5 text-center"></i><span>Referral Program</span></a>
+      <a href="offerwalls.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-list-check w-5 text-center"></i><span>Offerwalls</span></a>
+      <a href="about.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-regular fa-lightbulb w-5 text-center"></i><span>About</span></a>
+      <a href="faq.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-regular fa-circle-question w-5 text-center"></i><span>FAQ</span></a>
+      <div class="pt-4 border-t border-slate-800">
+        <a href="login.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-950/40"><i class="fa-solid fa-right-from-bracket w-5 text-center"></i><span>Log out</span></a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- MARKET CONTENT -->
+  <main class="max-w-md mx-auto px-4 pt-4 space-y-4">
+    
+    <!-- TELA PRINCIPAL DO MARKET -->
+    <div id="market-home" class="card-bg rounded-xl p-4 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-orbitron font-bold text-base text-white tracking-wider">MARKET</h3>
+        <i class="fa-solid fa-circle-info text-slate-400 text-sm"></i>
+      </div>
+      <div class="space-y-2.5">
+        <div onclick="openMarketCategory('miners')" class="bg-slate-900 border border-slate-800 hover:border-cyan-500/50 p-3.5 rounded-xl flex items-center justify-between cursor-pointer transition">
+          <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-server text-cyan-400 text-base"></i>
+            <span class="text-sm font-bold text-white">Miners</span>
+          </div>
+          <span class="bg-slate-800 text-cyan-300 px-2.5 py-0.5 rounded text-xs font-orbitron font-bold">11</span>
+        </div>
+        <div onclick="openMarketCategory('racks')" class="bg-slate-900 border border-slate-800 hover:border-cyan-500/50 p-3.5 rounded-xl flex items-center justify-between cursor-pointer transition">
+          <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-bars-staggered text-cyan-400 text-base"></i>
+            <span class="text-sm font-bold text-white">Racks</span>
+          </div>
+          <span class="bg-slate-800 text-cyan-300 px-2.5 py-0.5 rounded text-xs font-orbitron font-bold">2</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex items-center justify-between opacity-60">
+          <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-box-archive text-slate-500 text-base"></i>
+            <span class="text-sm font-bold text-slate-400">Chests</span>
+          </div>
+          <span class="bg-slate-800 text-slate-500 px-2.5 py-0.5 rounded text-xs font-orbitron font-bold">7</span>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex items-center justify-between opacity-60">
+          <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-cubes text-slate-500 text-base"></i>
+            <span class="text-sm font-bold text-slate-400">Others</span>
+          </div>
+          <span class="bg-slate-800 text-slate-500 px-2.5 py-0.5 rounded text-xs font-orbitron font-bold">1</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TELA DE CATEGORIA -->
+    <div id="market-category-view" class="hidden space-y-4">
+      <div class="flex items-center space-x-3 card-bg rounded-xl p-3 border border-slate-800">
+        <button onclick="backToMarketHome()" class="text-cyan-400 text-xs font-bold flex items-center space-x-1">
+          <i class="fa-solid fa-chevron-left"></i><span>Back</span>
+        </button>
+        <h3 id="category-title" class="font-orbitron font-bold text-sm text-white tracking-wider">MINERS</h3>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <div class="flex-1 bg-slate-900 border border-slate-800 rounded-lg p-2 text-xs flex justify-between items-center text-slate-300">
+          <span>Highest price</span><i class="fa-solid fa-chevron-down text-[10px]"></i>
+        </div>
+        <button class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-300 flex items-center space-x-1">
+          <i class="fa-solid fa-filter text-[10px]"></i><span>Filters 0</span>
+        </button>
+      </div>
+
+      <div id="product-grid" class="grid grid-cols-2 gap-3"></div>
+    </div>
+
+  </main>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('side-menu');
+      const overlay = document.getElementById('side-menu-overlay');
+      if (menu.classList.contains('closed')) {
+        menu.classList.remove('closed'); menu.classList.add('open'); overlay.classList.remove('hidden');
+      } else {
+        menu.classList.remove('open'); menu.classList.add('closed'); overlay.classList.add('hidden');
+      }
+    }
+
+    const marketData = {
+      miners: [
+        { name: "LimerMiner Tor50", type: "Large", power: "45000 GH/s", price: 115.00 },
+        { name: "LimerMiner 99S", type: "Large", power: "19999 GH/s", price: 55.50 },
+        { name: "LimerMiner 17N", type: "Large", power: "17540 GH/s", price: 44.40 },
+        { name: "LimerMiner 33L", type: "Large", power: "13333 GH/s", price: 33.30 },
+        { name: "LimerMiner 10L", type: "Large", power: "9870 GH/s", price: 22.20 },
+        { name: "LimerMiner 666", type: "Medium", power: "6666 GH/s", price: 15.50 },
+        { name: "LimerMiner 555", type: "Medium", power: "4555 GH/s", price: 10.90 },
+        { name: "LimerMiner 23M", type: "Medium", power: "2330 GH/s", price: 5.10 },
+        { name: "LimerMiner 17M", type: "Medium", power: "1750 GH/s", price: 4.20 },
+        { name: "LimerMiner 12M", type: "Medium", power: "1200 GH/s", price: 2.80 },
+        { name: "LimerMiner 530 mini", type: "Medium", power: "530 GH/s", price: 1.10 }
+      ],
+      racks: [
+        { name: "Basic rack 4", type: "4 shelves", power: "Rack Stand", price: 0.16 },
+        { name: "Basic rack 3", type: "3 shelves", power: "Rack Stand", price: 0.12 }
+      ]
+    };
+
+    function openMarketCategory(cat) {
+      document.getElementById('market-home').classList.add('hidden');
+      document.getElementById('market-category-view').classList.remove('hidden');
+      document.getElementById('category-title').innerText = cat.toUpperCase();
+
+      let grid = document.getElementById('product-grid');
+      grid.innerHTML = '';
+
+      marketData[cat].forEach((item, index) => {
+        grid.innerHTML += `
+          <div class="card-bg rounded-xl p-3 border border-slate-800 space-y-2 flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="h-24 bg-slate-900 border border-slate-800 rounded-lg flex items-center justify-center relative">
+                <span class="absolute top-2 left-2 text-[9px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-bold">L1</span>
+                <i class="fa-solid fa-server text-cyan-400 text-3xl"></i>
+                <span class="absolute top-2 right-2 text-[10px] text-emerald-400 font-bold"><i class="fa-solid fa-gem text-xs"></i></span>
+              </div>
+              <h4 class="font-orbitron font-bold text-xs text-white truncate">${item.name}</h4>
+              <div class="text-[10px] text-slate-400 space-y-0.5 border-t border-slate-800/80 pt-1.5">
+                <div><i class="fa-solid fa-expand mr-1"></i>${item.type}</div>
+                <div class="text-cyan-400 font-bold"><i class="fa-solid fa-bolt mr-1"></i>${item.power}</div>
+              </div>
+            </div>
+            <div class="space-y-2 pt-2 border-t border-slate-800">
+              <div class="flex items-center justify-between bg-slate-900 border border-slate-800 rounded p-1">
+                <button onclick="changeQty(${index}, -1)" class="w-6 h-6 bg-slate-800 rounded text-slate-300 text-xs">-</button>
+                <span id="qty-${index}" class="text-xs font-bold text-white">1</span>
+                <button onclick="changeQty(${index}, 1)" class="w-6 h-6 bg-slate-800 rounded text-slate-300 text-xs">+</button>
+              </div>
+              <div class="text-center font-orbitron font-bold text-xs text-amber-300"><i class="fa-solid fa-gem text-[10px]"></i> <span id="price-${index}">${item.price.toFixed(2)}</span></div>
+              <button onclick="alert('Compra realizada com sucesso!')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-orbitron font-bold py-1.5 rounded text-xs transition">Buy</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function backToMarketHome() {
+      document.getElementById('market-category-view').classList.add('hidden');
+      document.getElementById('market-home').classList.remove('hidden');
+    }
+
+    function changeQty(index, delta) {
+      let qtyEl = document.getElementById('qty-' + index);
+      let val = parseInt(qtyEl.innerText) + delta;
+      if (val < 1) val = 1;
+      qtyEl.innerText = val;
+    }
+  </script>
+</body>
+</html>
