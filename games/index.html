@@ -6,6 +6,13 @@
   <title>MITRIA SPACE COMMAND - Game Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@500;600;700&display=swap');
     :root {
@@ -18,71 +25,45 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body {
-      background-color: var(--bg-dark);
-      color: #fff;
-      font-family: 'Rajdhani', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0 16px 24px 16px;
+      background-color: var(--bg-dark); color: #fff;
+      font-family: 'Rajdhani', sans-serif; min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; padding: 0 16px 24px 16px;
     }
     .font-orbitron { font-family: 'Orbitron', sans-serif; }
     .glow-blue { box-shadow: 0 0 15px rgba(14, 165, 233, 0.4); }
     header, .stats-container, .games-list { width: 100%; max-width: 480px; }
     .section-title { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
     .stats-container {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 20px;
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 16px; padding: 16px; margin-bottom: 20px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
     .stats-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
     .stats-header h2 { font-size: 15px; font-weight: 800; color: #fff; }
     .reset-badge {
-      font-size: 11px;
-      color: var(--accent-lime);
-      background: rgba(163, 230, 53, 0.1);
-      border: 1px solid rgba(163, 230, 53, 0.3);
-      padding: 3px 8px;
-      border-radius: 12px;
+      font-size: 11px; color: var(--accent-lime); background: rgba(163, 230, 53, 0.1);
+      border: 1px solid rgba(163, 230, 53, 0.3); padding: 3px 8px; border-radius: 12px;
     }
     .stat-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
     .stat-row:last-child { margin-bottom: 0; }
     .stat-icon-box {
-      width: 36px; height: 36px;
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
+      width: 36px; height: 36px; background: #161b22; border: 1px solid #30363d;
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px;
     }
     .stat-info { display: flex; flex-direction: column; }
     .stat-label-small { font-size: 10px; color: var(--text-gray); text-transform: uppercase; font-weight: 700; }
     .stat-value-large { font-size: 16px; font-weight: 900; color: var(--accent-lime); }
     .games-list { display: flex; flex-direction: column; gap: 16px; }
     .game-card-original {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 16px;
-      display: flex;
-      gap: 14px;
-      align-items: stretch;
-      position: relative;
-      overflow: hidden;
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 16px; padding: 16px; display: flex; gap: 14px; align-items: stretch; position: relative; overflow: hidden;
     }
     .left-column { width: 130px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; position: relative; }
     .game-cover-img { width: 130px; height: 110px; background: #161b22; border: 1px solid #30363d; border-radius: 12px; object-fit: cover; }
     .btn-play-original {
-      display: flex; align-items: center; justify-content: center;
-      width: 100%; height: 38px;
-      background: transparent;
-      border: 2px solid var(--accent-cyan); color: var(--accent-cyan);
-      border-radius: 10px; font-weight: 900; font-size: 14px;
-      text-decoration: none; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; width: 100%; height: 38px;
+      background: transparent; border: 2px solid var(--accent-cyan); color: var(--accent-cyan);
+      border-radius: 10px; font-weight: 900; font-size: 14px; text-decoration: none; transition: all 0.2s;
     }
     .btn-play-original.disabled { pointer-events: none; opacity: 0.4; border-color: #475569; color: #475569; }
     .cooldown-overlay {
@@ -145,7 +126,7 @@
       <div class="flex items-center space-x-3">
         <div class="bg-slate-900 border border-slate-700 px-3 py-1.5 rounded flex items-center space-x-1">
           <i class="fa-solid fa-gem text-cyan-400 text-xs"></i>
-          <span class="font-orbitron text-xs font-bold text-cyan-300">1000.00</span>
+          <span class="font-orbitron text-xs font-bold text-cyan-300" id="header-mth-balance">0.00</span>
           <span class="text-[9px] text-slate-400">MTH</span>
         </div>
         <button onclick="toggleMenu()" class="w-9 h-9 bg-slate-900 border border-slate-700 rounded-lg flex items-center justify-center text-cyan-400 hover:text-white transition">
@@ -315,7 +296,7 @@
         <div class="pizza-loader" id="pizza-ad"><div class="pizza-inner" id="timer-ad">5s</div></div>
         <span class="cooldown-lbl">RECARREGANDO</span>
       </div>
-      <div class="left-column">
+      <div class="left-container left-column">
         <img src="assets/cover-2048.jpg" class="game-cover-img" alt="Aero Dash">
         <a href="aero-dash/index.html" class="btn-play-original" id="btn-ad">Play</a>
       </div>
@@ -365,20 +346,25 @@
       else if (hsValue >= 1000) return (hsValue / 1000).toFixed(2) + ' GHS';
       else return hsValue.toFixed(1) + ' HS';
     }
+
     function calcLevelAndPhase(savedStage) {
       let stage = parseInt(savedStage || '1');
       let level = Math.floor((stage - 1) / 5) + 1;
       return { levelNum: level, level: `Nível ${level}`, phase: stage > 30 ? `Fase 30/30` : `Fase ${stage}` };
     }
+
     function checkPhaseLimit(stage, btnId) {
       if (parseInt(stage) > 30) {
         const btn = document.getElementById(btnId);
-        btn.innerText = "MAX 30/30";
-        btn.classList.add('disabled');
-        btn.style.borderColor = "#eab308";
-        btn.style.color = "#eab308";
+        if(btn) {
+          btn.innerText = "MAX 30/30";
+          btn.classList.add('disabled');
+          btn.style.borderColor = "#eab308";
+          btn.style.color = "#eab308";
+        }
       }
     }
+
     function calcTokenBlasterPower(stage) {
       let maxStage = Math.min(stage, 31);
       let total = 0;
@@ -389,6 +375,7 @@
       }
       return total;
     }
+
     function checkAndApplyCooldown(gameKey, cardId, overlayId, timerId, pizzaId, btnId, totalPassedStages) {
       let stage = parseInt(localStorage.getItem(`${gameKey === 'token_blaster' ? 'tb' : gameKey}_saved_stage`) || '1');
       if (stage > 30) return;
@@ -404,26 +391,30 @@
         const timerTxt = document.getElementById(timerId);
         const pizza = document.getElementById(pizzaId);
         const btn = document.getElementById(btnId);
-        overlay.style.display = 'flex';
-        btn.classList.add('disabled');
-        let interval = setInterval(() => {
-          let currentElapsed = Date.now() - lastPlayTime;
-          let remainingSec = Math.ceil((durationMs - currentElapsed) / 1000);
-          let percent = (currentElapsed / durationMs) * 360;
-          if (remainingSec <= 0) {
-            clearInterval(interval);
-            overlay.style.display = 'none';
-            btn.classList.remove('disabled');
-          } else {
-            timerTxt.innerText = `${remainingSec}s`;
-            pizza.style.background = `conic-gradient(var(--accent-cyan) ${percent}deg, #1e293b ${percent}deg)`;
-          }
-        }, 200);
+        if(overlay && btn) {
+          overlay.style.display = 'flex';
+          btn.classList.add('disabled');
+          let interval = setInterval(() => {
+            let currentElapsed = Date.now() - lastPlayTime;
+            let remainingSec = Math.ceil((durationMs - currentElapsed) / 1000);
+            let percent = (currentElapsed / durationMs) * 360;
+            if (remainingSec <= 0) {
+              clearInterval(interval);
+              overlay.style.display = 'none';
+              btn.classList.remove('disabled');
+            } else {
+              if(timerTxt) timerTxt.innerText = `${remainingSec}s`;
+              if(pizza) pizza.style.background = `conic-gradient(var(--accent-cyan) ${percent}deg, #1e293b ${percent}deg)`;
+            }
+          }, 200);
+        }
       }
     }
+
     function loadHubStats() {
       let totalGames = localStorage.getItem('knd_total_games_played') || '0';
-      document.getElementById('total-games').innerText = totalGames;
+      const totalGamesEl = document.getElementById('total-games');
+      if(totalGamesEl) totalGamesEl.innerText = totalGames;
 
       let tbStage = parseInt(localStorage.getItem('tb_saved_stage') || '1');
       let ccStage = parseInt(localStorage.getItem('coin_catcher_saved_stage') || '1');
@@ -470,6 +461,21 @@
       let totalHashPower = tbHS + ccHS + m3HS + c2048HS + adHS + bonusHS;
       document.getElementById('total-hash').innerText = formatHashPower(totalHashPower);
 
+      // Sincroniza automaticamente com o Firestore por ID do usuário logado
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          try {
+            await db.collection('users').doc(user.uid).set({
+              gamesPower: totalHashPower,
+              gamesPlayed: parseInt(totalGames),
+              lastActive: new Date().toISOString()
+            }, { merge: true });
+          } catch(e) {
+            console.error("Erro ao sincronizar Game Hub com Firestore:", e);
+          }
+        }
+      });
+
       let totalPassedStages = (Math.min(tbStage, 31) - 1) + (Math.min(ccStage, 31) - 1) + (Math.min(m3Stage, 31) - 1) + (Math.min(c2048Stage, 31) - 1) + (Math.min(adStage, 31) - 1);
 
       checkAndApplyCooldown('token_blaster', 'card-tb', 'cd-overlay-tb', 'timer-tb', 'pizza-tb', 'btn-tb', totalPassedStages);
@@ -478,20 +484,24 @@
       checkAndApplyCooldown('crypto_2048', 'card-c2048', 'cd-overlay-c2048', 'timer-c2048', 'pizza-c2048', 'btn-c2048', totalPassedStages);
       checkAndApplyCooldown('aero_dash', 'card-ad', 'cd-overlay-ad', 'timer-ad', 'pizza-ad', 'btn-ad', totalPassedStages);
     }
+
     function openGameDetails(title, text) {
       document.getElementById('modalTitle').innerText = title;
       document.getElementById('modalText').innerText = text;
       document.getElementById('infoModal').style.display = 'flex';
     }
+
     function closeGameDetails() {
       document.getElementById('infoModal').style.display = 'none';
     }
+
     function forceResetData() {
       if (confirm("Deseja zerar todas as estatísticas e reiniciar o progresso dos jogos?")) {
         localStorage.clear();
         loadHubStats();
       }
     }
+
     window.addEventListener('DOMContentLoaded', loadHubStats);
   </script>
 </body>
