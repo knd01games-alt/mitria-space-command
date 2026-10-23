@@ -6,6 +6,14 @@
   <title>MITRIA SPACE COMMAND - Login & Cadastro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/profile.js" defer></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@500;600;700&display=swap');
     body { background-color: #030712; color: #e2e8f0; font-family: 'Rajdhani', sans-serif; }
@@ -13,79 +21,21 @@
     .glow-blue { box-shadow: 0 0 20px rgba(14, 165, 233, 0.3); }
     .card-bg { background: linear-gradient(180deg, #0b132b 0%, #030712 100%); border: 1px solid #1e293b; }
     
-    /* ESTILOS DO CAPTCHA QUEBRA-CABEÇA */
-    .captcha-box {
-      background: #090d16;
-      border: 1px solid #1e293b;
-      border-radius: 8px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .puzzle-canvas-container {
-      width: 100%;
-      height: 120px;
-      background: #111827 url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80') center/cover;
-      border-radius: 6px;
-      position: relative;
-      overflow: hidden;
-      border: 1px solid #334155;
-    }
-    .puzzle-hole {
-      position: absolute;
-      top: 35px;
-      left: 180px;
-      width: 45px;
-      height: 45px;
-      background: rgba(0, 0, 0, 0.75);
-      border: 2px dashed #0284c7;
-      border-radius: 6px;
-    }
-    .puzzle-piece {
-      position: absolute;
-      top: 35px;
-      left: 10px;
-      width: 45px;
-      height: 45px;
-      background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80') center/cover;
-      border: 2px solid #38bdf8;
-      border-radius: 6px;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
-      cursor: grab;
-    }
-    .slider-track {
-      width: 100%;
-      height: 12px;
-      background: #1e293b;
-      border-radius: 6px;
-      position: relative;
-    }
-    .slider-thumb {
-      width: 36px;
-      height: 24px;
-      background: #0284c7;
-      border-radius: 4px;
-      position: absolute;
-      top: -6px;
-      left: 0;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 10px;
-      transition: background 0.2s;
-    }
+    .captcha-box { background: #090d16; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .puzzle-canvas-container { width: 100%; height: 120px; background: #111827 url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80') center/cover; border-radius: 6px; position: relative; overflow: hidden; border: 1px solid #334155; }
+    .puzzle-hole { position: absolute; top: 35px; left: 180px; width: 45px; height: 45px; background: rgba(0, 0, 0, 0.75); border: 2px dashed #0284c7; border-radius: 6px; }
+    .puzzle-piece { position: absolute; top: 35px; left: 10px; width: 45px; height: 45px; background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80') center/cover; border: 2px solid #38bdf8; border-radius: 6px; box-shadow: 0 0 10px rgba(56, 189, 248, 0.8); cursor: grab; }
+    .slider-track { width: 100%; height: 12px; background: #1e293b; border-radius: 6px; position: relative; }
+    .slider-thumb { width: 36px; height: 24px; background: #0284c7; border-radius: 4px; position: absolute; top: -6px; left: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; transition: background 0.2s; }
     .slider-thumb:hover { background: #38bdf8; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-center items-center px-4 py-8">
 
-  <!-- CARD PRINCIPAL DE LOGIN / CADASTRO -->
+  <!-- CARD PRINCIPAL -->
   <div class="w-full max-w-md card-bg rounded-2xl p-6 glow-blue space-y-6">
     
-    <!-- Logo do Projeto -->
+    <!-- Logo -->
     <div class="flex flex-col items-center justify-center space-y-2 text-center">
       <div class="w-14 h-14 border-2 border-cyan-400 rotate-45 flex items-center justify-center bg-cyan-950/40 glow-blue">
         <i class="fa-solid fa-cube -rotate-45 text-cyan-400 text-2xl"></i>
@@ -96,14 +46,14 @@
       </div>
     </div>
 
-    <!-- Abas Alternáveis: Login / Sign Up -->
+    <!-- Abas Alternáveis -->
     <div class="flex border-b border-slate-800 text-sm font-bold font-orbitron">
       <button id="tab-login-btn" onclick="switchForm('login')" class="flex-1 py-2 text-cyan-400 border-b-2 border-cyan-400 transition">LOGIN</button>
       <button id="tab-signup-btn" onclick="switchForm('signup')" class="flex-1 py-2 text-slate-500 hover:text-slate-300 transition">CADASTRAR</button>
     </div>
 
-    <!-- Botão de Entrar via Conta Google -->
-    <button onclick="authViaGoogle()" class="w-full bg-slate-900 border border-slate-700 hover:border-slate-500 py-2.5 px-4 rounded-xl flex items-center justify-center space-x-3 text-sm font-bold text-white transition">
+    <!-- Botão Google -->
+    <button onclick="loginWithGoogle()" class="w-full bg-slate-900 border border-slate-700 hover:border-slate-500 py-2.5 px-4 rounded-xl flex items-center justify-center space-x-3 text-sm font-bold text-white transition">
       <svg class="w-4 h-4" viewBox="0 0 24 24">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -119,7 +69,7 @@
       <div class="flex-1 h-px bg-slate-800"></div>
     </div>
 
-    <!-- FORMULÁRIO (ENTRADAS DE DADOS) -->
+    <!-- FORMULÁRIO DE ENTRADA -->
     <form id="auth-form" onsubmit="handleAuth(event)" class="space-y-4">
       
       <!-- Nome de Usuário (Apenas no Cadastro) -->
@@ -155,13 +105,12 @@
           <label class="text-xs font-bold text-slate-400">VERIFICAÇÃO DE SEGURANÇA</label>
           <span id="captcha-status" class="text-[10px] font-bold text-amber-400">ARRASTE O PUZZLE</span>
         </div>
-        
+
         <div class="captcha-box">
           <div class="puzzle-canvas-container">
             <div class="puzzle-hole"></div>
             <div id="puzzle-piece" class="puzzle-piece"></div>
           </div>
-          
           <div class="slider-track">
             <input type="range" id="puzzle-slider" min="0" max="100" value="0" oninput="movePuzzlePiece(this.value)" onchange="checkPuzzleSolution(this.value)" class="w-full opacity-0 cursor-pointer absolute inset-0 z-10">
             <div id="slider-thumb" class="slider-thumb">
@@ -175,16 +124,14 @@
       <button id="btn-submit" type="submit" disabled class="w-full bg-slate-800 text-slate-500 font-orbitron font-bold py-3 rounded-xl transition cursor-not-allowed">
         ENTRAR NO COMANDO
       </button>
-
     </form>
   </div>
 
   <script>
     let currentMode = 'login';
     let captchaPassed = false;
-    const targetPosition = 170; // Posição do encaixe correto em px
+    const targetPosition = 170;
 
-    // Alterna entre tela de Login e de Cadastro
     function switchForm(mode) {
       currentMode = mode;
       const usernameField = document.getElementById('username-field');
@@ -205,25 +152,21 @@
       }
     }
 
-    // Mover a pecinha do quebra-cabeça conforme arrasta o slider
     function movePuzzlePiece(value) {
       const piece = document.getElementById('puzzle-piece');
       const thumb = document.getElementById('slider-thumb');
-      const maxMove = 220; // Largura do container menos a largura da peça
+      const maxMove = 220;
       const currentPos = (value / 100) * maxMove;
-      
       piece.style.left = (10 + currentPos) + 'px';
       thumb.style.left = value + '%';
     }
 
-    // Validar se encaixou no lugar certo
     function checkPuzzleSolution(value) {
       const maxMove = 220;
       const currentPos = 10 + (value / 100) * maxMove;
       const statusText = document.getElementById('captcha-status');
       const submitBtn = document.getElementById('btn-submit');
 
-      // Margem de tolerância de 8px para o encaixe
       if (Math.abs(currentPos - targetPosition) <= 8) {
         captchaPassed = true;
         statusText.innerText = "✔ VERIFICADO";
@@ -239,22 +182,48 @@
       }
     }
 
-    // Simulação de login/cadastro e redirecionamento para a Home
-    function handleAuth(event) {
+    // Processar Autenticação Firebase (Login ou Cadastro via E-mail)
+    async function handleAuth(event) {
       event.preventDefault();
       if (!captchaPassed) {
         alert("Por favor, encaixe o quebra-cabeça primeiro!");
         return;
       }
 
-      alert("Autenticação realizada com sucesso! Redirecionando para o Mitria Space Command...");
-      window.location.href = "index.html";
-    }
+      const email = document.getElementById('input-email').value;
+      const password = document.getElementById('input-password').value;
+      const username = document.getElementById('input-username').value;
 
-    // Login rápido com o Google
-    function authViaGoogle() {
-      alert("Conectando com a Conta Google...");
-      window.location.href = "index.html";
+      try {
+        if (currentMode === 'signup') {
+          // Criar nova conta no Firebase
+          const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+          const user = userCredential.user;
+          
+          // Gravar documento zerado no Firestore
+          await db.collection('users').doc(user.uid).set({
+            username: username || 'Comandante',
+            email: email,
+            photoURL: '',
+            mthBalance: 0.00,
+            totalPower: 0,
+            minersPower: 0,
+            gamesPower: 0,
+            temporaryPower: 0,
+            gamesPlayed: 0,
+            gamesWon: 0,
+            createdAt: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+          });
+
+          alert("Conta criada com sucesso! Entrando...");
+        } else {
+          // Fazer Login com e-mail existente
+          await auth.signInWithEmailAndPassword(email, password);
+        }
+        window.location.href = "index.html";
+      } catch (error) {
+        alert("Erro na autenticação: " + error.message);
+      }
     }
   </script>
 </body>
