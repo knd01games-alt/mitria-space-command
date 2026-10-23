@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Data Center Sync - KND Arcade</title>
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase-config.js"></script>
+
   <style>
     :root {
       --bg-dark: #030712;
@@ -13,95 +20,51 @@
       --accent-gold: #eab308;
       --text-gray: #94a3b8;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-
     body {
-      background-color: var(--bg-dark);
-      color: #fff;
+      background-color: var(--bg-dark); color: #fff;
       font-family: 'Segoe UI', system-ui, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 16px;
     }
-
     .sync-container {
-      width: 100%;
-      max-width: 500px;
-      background: var(--card-bg);
-      border: 1px solid #1e293b;
-      border-radius: 20px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
+      width: 100%; max-width: 500px; background: var(--card-bg);
+      border: 1px solid #1e293b; border-radius: 20px; padding: 24px;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
       box-shadow: 0 10px 40px rgba(6, 182, 212, 0.15);
     }
-
     .sync-title {
-      font-size: 18px;
-      font-weight: 900;
+      font-size: 18px; font-weight: 900;
       background: linear-gradient(135deg, var(--accent-cyan), var(--accent-lime));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       margin-bottom: 6px;
     }
-
     canvas {
-      width: 100%;
-      height: 200px;
-      border-radius: 12px;
-      border: 1px solid #1e293b;
-      background: #020617;
-      margin-bottom: 16px;
-      display: block;
+      width: 100%; height: 200px; border-radius: 12px;
+      border: 1px solid #1e293b; background: #020617;
+      margin-bottom: 16px; display: block;
     }
-
     .progress-bar-bg {
-      width: 100%;
-      height: 10px;
-      background: #0f172a;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid #334155;
+      width: 100%; height: 10px; background: #0f172a;
+      border-radius: 8px; overflow: hidden; border: 1px solid #334155;
       margin-bottom: 16px;
     }
-
     .progress-bar-fill {
-      width: 0%;
-      height: 100%;
+      width: 0%; height: 100%;
       background: linear-gradient(90deg, var(--accent-cyan), var(--accent-lime));
       transition: width 0.1s linear;
     }
-
     .bonus-box {
-      display: none;
-      width: 100%;
-      background: rgba(234, 179, 8, 0.15);
-      border: 1px solid var(--accent-gold);
-      color: var(--accent-gold);
-      padding: 10px;
-      border-radius: 10px;
-      font-weight: 800;
-      font-size: 12px;
+      display: none; width: 100%; background: rgba(234, 179, 8, 0.15);
+      border: 1px solid var(--accent-gold); color: var(--accent-gold);
+      padding: 10px; border-radius: 10px; font-weight: 800; font-size: 12px;
       margin-bottom: 16px;
     }
-
     .btn-next {
-      display: none;
-      width: 100%;
-      padding: 12px;
-      background: var(--accent-lime);
-      color: #000;
-      font-weight: 900;
-      font-size: 14px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
+      display: none; width: 100%; padding: 12px;
+      background: var(--accent-lime); color: #000;
+      font-weight: 900; font-size: 14px; border: none;
+      border-radius: 10px; cursor: pointer;
     }
   </style>
 </head>
@@ -110,17 +73,17 @@
   <div class="sync-container">
     <h2 class="sync-title">TRANSMISSÃO DE DADOS DO DATA CENTER</h2>
     <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 14px;">Transferindo pacotes de Hash Power para o servidor...</p>
-
+    
     <canvas id="dcCanvas" width="500" height="200"></canvas>
-
+    
     <div class="progress-bar-bg">
       <div id="progress-fill" class="progress-bar-fill"></div>
     </div>
-
+    
     <div id="bonus-card" class="bonus-box">
       🎉 BÔNUS ESPECIAL DE MINERAÇÃO (5% CHANCE)! +100 HS EXTRA CONCEDIDO!
     </div>
-
+    
     <button id="btn-advance" class="btn-next" onclick="goToReward()">AVANÇAR PARA A RECOMPENSA ➔</button>
   </div>
 
@@ -129,12 +92,68 @@
     const game = urlParams.get('game') || 'aero_dash';
     const stage = parseInt(urlParams.get('stage') || '1');
 
-    // Registrar o timestamp de conclusão do jogo para iniciar o Cooldown no Game Hub
+    // Registrar o timestamp de conclusão do jogo para iniciar o Cooldown
     localStorage.setItem(`knd_last_play_${game}`, Date.now().toString());
 
-    // Incrementar partidas jogadas
     let currentGames = parseInt(localStorage.getItem('knd_total_games_played') || '0');
     localStorage.setItem('knd_total_games_played', (currentGames + 1).toString());
+
+    // Sincronizar com o Firebase Firestore e regra das 21h
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        try {
+          const userRef = db.collection('users').doc(user.uid);
+          const doc = await userRef.get();
+
+          let totalPower = 0;
+          let gamesPower = 0;
+
+          // Verificação da Regra de Reset Diário às 21:00 (Brasília)
+          const now = new Date();
+          // Ajusta para o horário de Brasília (UTC-3)
+          const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+          const brasiliaTime = new Date(utc - (3 * 3600000));
+          
+          let todayDateStr = brasiliaTime.toISOString().split('T')[0];
+          let currentHour = brasiliaTime.getHours();
+
+          if (doc.exists) {
+            const data = doc.data();
+            let lastReset = data.lastResetDate || '';
+            
+            // Se mudou o dia ou passou das 21h em relação ao reset anterior
+            if (lastReset !== todayDateStr && currentHour >= 21) {
+              gamesPower = 0; // Reseta pontos do jogo
+              todayDateStr = todayDateStr;
+            } else {
+              gamesPower = data.gamesPower || 0;
+            }
+          }
+
+          // Calcula o poder ganho com base no jogo atual
+          let earnedPower = 0;
+          if (game === 'token_blaster') earnedPower = 21;
+          else if (game === 'coin_catcher' || game === 'match3') earnedPower = 15;
+          else earnedPower = 16.5;
+
+          gamesPower += earnedPower;
+          let minersPower = doc.exists ? (doc.data().minersPower || 0) : 0;
+          let bonusExtra = parseInt(localStorage.getItem('knd_bonus_hash_extra') || '0');
+          totalPower = minersPower + gamesPower + bonusExtra;
+
+          // Salva no Firestore
+          await userRef.set({
+            gamesPower: gamesPower,
+            totalPower: totalPower,
+            gamesPlayed: firebase.firestore.FieldValue.increment(1),
+            lastResetDate: todayDateStr
+          }, { merge: true });
+
+        } catch (err) {
+          console.error("Erro ao sincronizar com Firestore:", err);
+        }
+      }
+    });
 
     const canvas = document.getElementById('dcCanvas');
     const ctx = canvas.getContext('2d');
@@ -143,7 +162,7 @@
     const btnAdvance = document.getElementById('btn-advance');
 
     let startTime = Date.now();
-    let durationMs = 2500; // 2.5s para transmissão fluida dos dados
+    let durationMs = 2500;
     let wonBonus = false;
 
     function update() {
@@ -151,7 +170,6 @@
       let progress = Math.min(100, (elapsed / durationMs) * 100);
 
       progressFill.style.width = `${progress}%`;
-
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#020617'; ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#0f172a'; ctx.strokeStyle = '#06b6d4';
@@ -161,7 +179,6 @@
       if (progress < 100) {
         requestAnimationFrame(update);
       } else {
-        // Sorteio de 5% de chance de Bônus Extra
         if (Math.random() < 0.05) {
           wonBonus = true;
           bonusCard.style.display = 'block';
