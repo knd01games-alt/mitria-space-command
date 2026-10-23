@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Data Center Sync - Mitria Space Command</title>
   
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
@@ -13,66 +12,33 @@
 
   <style>
     :root {
-      --bg-dark: #030712;
-      --card-bg: #0b0f19;
-      --accent-cyan: #06b6d4;
-      --accent-lime: #a3e635;
-      --accent-gold: #eab308;
-      --text-gray: #94a3b8;
+      --bg-dark: #030712; --card-bg: #0b0f19; --accent-cyan: #06b6d4; --accent-lime: #a3e635; --accent-gold: #eab308; --text-gray: #94a3b8;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body {
-      background-color: var(--bg-dark); color: #fff;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      min-height: 100vh; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; padding: 16px;
+      background-color: var(--bg-dark); color: #fff; font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px;
     }
     .sync-container {
-      width: 100%; max-width: 500px; background: var(--card-bg);
-      border: 1px solid #1e293b; border-radius: 20px; padding: 24px;
-      display: flex; flex-direction: column; align-items: center; text-align: center;
-      box-shadow: 0 10px 40px rgba(6, 182, 212, 0.15);
+      width: 100%; max-width: 500px; background: var(--card-bg); border: 1px solid #1e293b; border-radius: 20px; padding: 24px;
+      display: flex; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 10px 40px rgba(6, 182, 212, 0.15);
     }
     .sync-title {
-      font-size: 18px; font-weight: 900;
-      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-lime));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      margin-bottom: 6px;
+      font-size: 18px; font-weight: 900; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-lime));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px;
     }
-    canvas {
-      width: 100%; height: 200px; border-radius: 12px;
-      border: 1px solid #1e293b; background: #020617;
-      margin-bottom: 16px; display: block;
-    }
-    .progress-bar-bg {
-      width: 100%; height: 10px; background: #0f172a;
-      border-radius: 8px; overflow: hidden; border: 1px solid #334155;
-      margin-bottom: 16px;
-    }
-    .progress-bar-fill {
-      width: 0%; height: 100%;
-      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-lime));
-      transition: width 0.1s linear;
-    }
-    .bonus-box {
-      display: none; width: 100%; background: rgba(234, 179, 8, 0.15);
-      border: 1px solid var(--accent-gold); color: var(--accent-gold);
-      padding: 10px; border-radius: 10px; font-weight: 800; font-size: 12px;
-      margin-bottom: 16px;
-    }
-    .btn-next {
-      display: none; width: 100%; padding: 12px;
-      background: var(--accent-lime); color: #000;
-      font-weight: 900; font-size: 14px; border: none;
-      border-radius: 10px; cursor: pointer;
-    }
+    canvas { width: 100%; height: 200px; border-radius: 12px; border: 1px solid #1e293b; background: #020617; margin-bottom: 16px; display: block; }
+    .progress-bar-bg { width: 100%; height: 10px; background: #0f172a; border-radius: 8px; overflow: hidden; border: 1px solid #334155; margin-bottom: 16px; }
+    .progress-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent-cyan), var(--accent-lime)); transition: width 0.1s linear; }
+    .bonus-box { display: none; width: 100%; background: rgba(234, 179, 8, 0.15); border: 1px solid var(--accent-gold); color: var(--accent-gold); padding: 10px; border-radius: 10px; font-weight: 800; font-size: 12px; margin-bottom: 16px; }
+    .btn-next { display: none; width: 100%; padding: 12px; background: var(--accent-lime); color: #000; font-weight: 900; font-size: 14px; border: none; border-radius: 10px; cursor: pointer; }
   </style>
 </head>
 <body>
 
   <div class="sync-container">
     <h2 class="sync-title">TRANSMISSÃO DE DADOS DO DATA CENTER</h2>
-    <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 14px;">Salvando progresso e fases na nuvem...</p>
+    <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 14px;" id="sync-status">Sincronizando fase e Rest Power na nuvem...</p>
 
     <canvas id="dcCanvas" width="500" height="200"></canvas>
 
@@ -84,7 +50,7 @@
       🎉 BÔNUS ESPECIAL DE MINERAÇÃO (5% CHANCE)! +100 HS EXTRA CONCEDIDO!
     </div>
 
-    <button id="btn-advance" class="btn-next" onclick="goToReward()">AVANÇAR PARA A RECOMPENSA ➔</button>
+    <button id="btn-advance" class="btn-next" onclick="goToHub()">RETORNAR AO GAME HUB ➔</button>
   </div>
 
   <script>
@@ -92,16 +58,18 @@
     const game = urlParams.get('game') || 'token_blaster';
     let wonBonus = false;
 
-    // Mapeia chaves curtas para os jogos
-    let gameKeyMap = {
+    // Mapa de identificadores para os 5 jogos
+    const gameKeyMap = {
       'token_blaster': 'tb',
       'coin_catcher': 'cc',
       'match3': 'm3',
       'crypto_2048': 'c2048',
       'aero_dash': 'ad'
     };
-    let shortKey = gameKeyMap[game] || 'tb';
+    const shortKey = gameKeyMap[game] || 'tb';
+    const stageField = `${shortKey}_stage`;
 
+    // Processamento centralizado na nuvem (Firestore)
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
         window.location.href = "../login.html";
@@ -109,23 +77,37 @@
         try {
           const userRef = db.collection('users').doc(user.uid);
           const doc = await userRef.get();
-
           let data = doc.exists ? doc.data() : {};
-          
-          // Pega estágio atual do jogo específico (máximo 30)
-          let currentStageField = `${shortKey}_stage`;
-          let gameStage = parseInt(data[currentStageField] || '1');
 
-          // Se já passou do limite de 30, trava
-          if (gameStage > 30) {
-            document.getElementById('btn-advance').style.display = 'block';
-            return;
+          // Regra de Reset Diário às 21:00 (Horário de Brasília)
+          const now = new Date();
+          const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+          const brasiliaTime = new Date(utc - (3 * 3600000));
+          let todayDateStr = brasiliaTime.toISOString().split('T')[0];
+          let currentHour = brasiliaTime.getHours();
+          let lastReset = data.lastResetDate || '';
+
+          let currentStage = parseInt(data[stageField] || 1);
+
+          // Se mudou o dia e passou das 21h, reseta as fases e pontos do dia
+          if (lastReset !== todayDateStr && currentHour >= 21) {
+            data.tb_stage = 1;
+            data.cc_stage = 1;
+            data.match3_stage = 1;
+            data.crypto_2048_stage = 1;
+            data.ad_stage = 1;
+            currentStage = 1;
+            todayDateStr = todayDateStr;
           }
 
-          // Incrementa a fase do jogo
-          gameStage += 1;
+          // Avança a fase se estiver abaixo de 30
+          if (currentStage < 30) {
+            currentStage += 1;
+          }
 
-          // Incrementa estatísticas gerais
+          data[stageField] = currentStage;
+
+          // Estatísticas gerais
           let gamesPlayed = (data.gamesPlayed || 0) + 1;
           let bonusExtra = data.bonusExtra || 0;
 
@@ -135,29 +117,13 @@
             document.getElementById('bonus-card').style.display = 'block';
           }
 
-          // Salva no Firestore o progresso da fase, timestamp do último jogo e bônus
-          let updatePayload = {
-            gamesPlayed: gamesPlayed,
-            bonusExtra: bonusExtra,
-            [`lastPlay_${game}`]: Date.now(),
-            [currentStageField]: gameStage
-          };
-
-          // Recalcula o poder total de todos os jogos baseado nas fases salvas no banco
+          // Cálculo do Rest Power unificado para os 5 jogos
           let tbS = data.tb_stage || 1;
-          let ccS = data.coin_catcher_stage || 1;
+          let ccS = data.cc_stage || 1;
           let m3S = data.match3_stage || 1;
           let c2048S = data.crypto_2048_stage || 1;
-          let adS = data.aero_dash_stage || 1;
+          let adS = data.ad_stage || 1;
 
-          // Atualiza o estágio do jogo atual no cálculo
-          if (shortKey === 'tb') tbS = gameStage;
-          if (shortKey === 'cc') ccS = gameStage;
-          if (shortKey === 'm3') m3S = gameStage;
-          if (shortKey === 'c2048') c2048S = gameStage;
-          if (shortKey === 'ad') adS = gameStage;
-
-          // Fórmula de Hash Power
           let tbHS = 0;
           for (let s = 1; s < Math.min(tbS, 31); s++) {
             let lvl = Math.floor((s - 1) / 5) + 1;
@@ -172,13 +138,26 @@
           let minersPower = data.minersPower || 0;
           let totalPower = minersPower + gamesPower + bonusExtra;
 
-          updatePayload.gamesPower = gamesPower;
-          updatePayload.totalPower = totalPower;
+          // Grava todas as informações atualizadas de forma centralizada no Firestore
+          await userRef.set({
+            tb_stage: tbS,
+            cc_stage: ccS,
+            match3_stage: m3S,
+            crypto_2048_stage: c2048S,
+            ad_stage: adS,
+            gamesPower: gamesPower,
+            bonusExtra: bonusExtra,
+            totalPower: totalPower,
+            gamesPlayed: gamesPlayed,
+            lastResetDate: todayDateStr,
+            [`lastPlay_${game}`]: Date.now()
+          }, { merge: true });
 
-          await userRef.set(updatePayload, { merge: true });
+          document.getElementById('sync-status').innerText = `Fase ${currentStage} registrada com sucesso na nuvem!`;
 
         } catch (err) {
-          console.error("Erro ao sincronizar fase no Firestore:", err);
+          console.error("Erro na sincronização central:", err);
+          document.getElementById('sync-status').innerText = "Erro ao salvar na nuvem.";
         }
       }
     });
@@ -210,8 +189,8 @@
       }
     }
 
-    function goToReward() {
-      window.location.href = `reward.html?game=${game}&bonus=${wonBonus ? 1 : 0}`;
+    function goToHub() {
+      window.location.href = `index.html`;
     }
 
     requestAnimationFrame(update);
