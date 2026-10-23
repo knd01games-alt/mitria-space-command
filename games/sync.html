@@ -72,7 +72,7 @@
 
   <div class="sync-container">
     <h2 class="sync-title">TRANSMISSÃO DE DADOS DO DATA CENTER</h2>
-    <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 14px;">Transferindo pacotes de Hash Power para o servidor em nuvem...</p>
+    <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 14px;">Salvando progresso e fases na nuvem...</p>
 
     <canvas id="dcCanvas" width="500" height="200"></canvas>
 
@@ -81,7 +81,7 @@
     </div>
 
     <div id="bonus-card" class="bonus-box">
-      🎉 BÔNUS ESPECIAL DE MINERAÇÃO (5% CHANCE)! +100 HS EXTRA CONCEDIDO NA NUVEM!
+      🎉 BÔNUS ESPECIAL DE MINERAÇÃO (5% CHANCE)! +100 HS EXTRA CONCEDIDO!
     </div>
 
     <button id="btn-advance" class="btn-next" onclick="goToReward()">AVANÇAR PARA A RECOMPENSA ➔</button>
@@ -89,12 +89,19 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const game = urlParams.get('game') || 'aero_dash';
-    const stage = parseInt(urlParams.get('stage') || '1');
-
+    const game = urlParams.get('game') || 'token_blaster';
     let wonBonus = false;
 
-    // Sincronização 100% em Nuvem via Firestore por ID do Usuário (uid)
+    // Mapeia chaves curtas para os jogos
+    let gameKeyMap = {
+      'token_blaster': 'tb',
+      'coin_catcher': 'cc',
+      'match3': 'm3',
+      'crypto_2048': 'c2048',
+      'aero_dash': 'ad'
+    };
+    let shortKey = gameKeyMap[game] || 'tb';
+
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
         window.location.href = "../login.html";
@@ -103,69 +110,80 @@
           const userRef = db.collection('users').doc(user.uid);
           const doc = await userRef.get();
 
-          let gamesPower = 0;
-          let minersPower = 0;
-          let bonusExtra = 0;
-          let gamesPlayed = 0;
+          let data = doc.exists ? doc.data() : {};
+          
+          // Pega estágio atual do jogo específico (máximo 30)
+          let currentStageField = `${shortKey}_stage`;
+          let gameStage = parseInt(data[currentStageField] || '1');
 
-          // Regra de Reset Diário às 21:00 (Brasília)
-          const now = new Date();
-          const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-          const brasiliaTime = new Date(utc - (3 * 3600000));
-          let todayDateStr = brasiliaTime.toISOString().split('T')[0];
-          let currentHour = brasiliaTime.getHours();
-
-          if (doc.exists) {
-            const data = doc.data();
-            let lastReset = data.lastResetDate || '';
-
-            if (lastReset !== todayDateStr && currentHour >= 21) {
-              gamesPower = 0;
-            } else {
-              gamesPower = data.gamesPower || 0;
-            }
-
-            minersPower = data.minersPower || 0;
-            bonusExtra = data.bonusExtra || 0;
-            gamesPlayed = data.gamesPlayed || 0;
+          // Se já passou do limite de 30, trava
+          if (gameStage > 30) {
+            document.getElementById('btn-advance').style.display = 'block';
+            return;
           }
 
-          // Cálculo do poder ganho com base no jogo
-          let earnedPower = 0;
-          if (game === 'token_blaster') earnedPower = 21;
-          else if (game === 'coin_catcher' || game === 'match3') earnedPower = 15;
-          else earnedPower = 16.5;
+          // Incrementa a fase do jogo
+          gameStage += 1;
 
-          gamesPower += earnedPower;
-          gamesPlayed += 1;
+          // Incrementa estatísticas gerais
+          let gamesPlayed = (data.gamesPlayed || 0) + 1;
+          let bonusExtra = data.bonusExtra || 0;
 
-          // Sorteio de bônus de 5% de chance direto na nuvem
           if (Math.random() < 0.05) {
             wonBonus = true;
             bonusExtra += 100;
-            const bonusCard = document.getElementById('bonus-card');
-            if (bonusCard) bonusCard.style.display = 'block';
+            document.getElementById('bonus-card').style.display = 'block';
           }
 
+          // Salva no Firestore o progresso da fase, timestamp do último jogo e bônus
+          let updatePayload = {
+            gamesPlayed: gamesPlayed,
+            bonusExtra: bonusExtra,
+            [`lastPlay_${game}`]: Date.now(),
+            [currentStageField]: gameStage
+          };
+
+          // Recalcula o poder total de todos os jogos baseado nas fases salvas no banco
+          let tbS = data.tb_stage || 1;
+          let ccS = data.coin_catcher_stage || 1;
+          let m3S = data.match3_stage || 1;
+          let c2048S = data.crypto_2048_stage || 1;
+          let adS = data.aero_dash_stage || 1;
+
+          // Atualiza o estágio do jogo atual no cálculo
+          if (shortKey === 'tb') tbS = gameStage;
+          if (shortKey === 'cc') ccS = gameStage;
+          if (shortKey === 'm3') m3S = gameStage;
+          if (shortKey === 'c2048') c2048S = gameStage;
+          if (shortKey === 'ad') adS = gameStage;
+
+          // Fórmula de Hash Power
+          let tbHS = 0;
+          for (let s = 1; s < Math.min(tbS, 31); s++) {
+            let lvl = Math.floor((s - 1) / 5) + 1;
+            tbHS += 21 * (1 + (lvl - 1) * 0.20);
+          }
+          let ccHS = (Math.min(ccS, 31) - 1) * 15;
+          let m3HS = (Math.min(m3S, 31) - 1) * 15;
+          let c2048HS = (Math.min(c2048S, 31) - 1) * 16.5;
+          let adHS = (Math.min(adS, 31) - 1) * 16.5;
+
+          let gamesPower = tbHS + ccHS + m3HS + c2048HS + adHS;
+          let minersPower = data.minersPower || 0;
           let totalPower = minersPower + gamesPower + bonusExtra;
 
-          // Gravação atômica no Firestore sem usar localStorage
-          await userRef.set({
-            gamesPower: gamesPower,
-            bonusExtra: bonusExtra,
-            totalPower: totalPower,
-            gamesPlayed: gamesPlayed,
-            lastResetDate: todayDateStr,
-            [`lastPlay_${game}`]: Date.now()
-          }, { merge: true });
+          updatePayload.gamesPower = gamesPower;
+          updatePayload.totalPower = totalPower;
+
+          await userRef.set(updatePayload, { merge: true });
 
         } catch (err) {
-          console.error("Erro ao sincronizar com Firestore no sync.html:", err);
+          console.error("Erro ao sincronizar fase no Firestore:", err);
         }
       }
     });
 
-    // Animação visual do Data Center Sync
+    // Animação visual da barra de progresso
     const canvas = document.getElementById('dcCanvas');
     const ctx = canvas.getContext('2d');
     const progressFill = document.getElementById('progress-fill');
@@ -193,7 +211,7 @@
     }
 
     function goToReward() {
-      window.location.href = `reward.html?game=${game}&stage=${stage}&bonus=${wonBonus ? 1 : 0}`;
+      window.location.href = `reward.html?game=${game}&bonus=${wonBonus ? 1 : 0}`;
     }
 
     requestAnimationFrame(update);
