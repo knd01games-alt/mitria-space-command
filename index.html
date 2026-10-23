@@ -12,7 +12,40 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <script src="js/firebase-config.js"></script>
-  <script src="js/profile.js" defer></script>
+
+  <!-- Proteção de Sessão: Se não estiver logado, vai direto para o login -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      auth.onAuthStateChanged((user) => {
+        if (!user) {
+          window.location.href = "login.html";
+        } else {
+          // Atualiza saldo se o elemento existir
+          db.collection('users').doc(user.uid).get().then((doc) => {
+            if (doc.exists) {
+              const data = doc.data();
+              const balanceEl = document.getElementById('header-mth-balance');
+              if (balanceEl && data.mthBalance !== undefined) {
+                balanceEl.innerText = Number(data.mthBalance).toFixed(2);
+              }
+              const powerEl = document.getElementById('telemetry-user-power');
+              if (powerEl && data.totalPower !== undefined) {
+                powerEl.innerText = data.totalPower + " HS";
+              }
+            }
+          });
+        }
+      });
+    });
+
+    function logoutUser() {
+      auth.signOut().then(() => {
+        window.location.href = "login.html";
+      }).catch((error) => {
+        console.error("Erro ao fazer logout:", error);
+      });
+    }
+  </script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@500;600;700&display=swap');
@@ -138,7 +171,7 @@
         <h3 class="font-orbitron font-bold text-sm text-white">SALA DE MINERAÇÃO (12 ESTANTES)</h3>
         <span class="text-[10px] text-emerald-400 font-bold">● SCROLL ATIVO</span>
       </div>
-
+      
       <div class="mining-room-canvas">
         <div class="grid grid-cols-2 gap-3">
           <!-- Rack Rig #1 -->
