@@ -6,6 +6,14 @@
   <title>MITRIA SPACE COMMAND - Profile</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/profile.js" defer></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@500;600;700&display=swap');
     body { background-color: #030712; color: #e2e8f0; font-family: 'Rajdhani', sans-serif; }
@@ -34,7 +42,7 @@
       <div class="flex items-center space-x-3">
         <div class="bg-slate-900 border border-slate-700 px-3 py-1.5 rounded flex items-center space-x-1">
           <i class="fa-solid fa-gem text-cyan-400 text-xs"></i>
-          <span class="font-orbitron text-xs font-bold text-cyan-300">1000.00</span>
+          <span id="user-balance" class="font-orbitron text-xs font-bold text-cyan-300">0.00</span>
           <span class="text-[9px] text-slate-400">MTH</span>
         </div>
         <button onclick="toggleMenu()" class="w-9 h-9 bg-slate-900 border border-slate-700 rounded-lg flex items-center justify-center text-cyan-400 hover:text-white transition">
@@ -66,7 +74,7 @@
       <a href="about.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-regular fa-lightbulb w-5 text-center"></i><span>About</span></a>
       <a href="faq.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-regular fa-circle-question w-5 text-center"></i><span>FAQ</span></a>
       <div class="pt-4 border-t border-slate-800">
-        <a href="login.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-950/40"><i class="fa-solid fa-right-from-bracket w-5 text-center"></i><span>Log out</span></a>
+        <a href="#" onclick="logoutUser(); return false;" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-950/40"><i class="fa-solid fa-right-from-bracket w-5 text-center"></i><span>Log out</span></a>
       </div>
     </nav>
   </aside>
@@ -91,6 +99,10 @@
           <i class="fa-solid fa-gamepad text-slate-400 text-base"></i>
           <span class="text-sm font-bold text-white">Game statistics</span>
         </button>
+        <button onclick="switchTab('referral')" class="w-full bg-slate-900 border border-slate-800 hover:border-cyan-500/50 p-3.5 rounded-xl flex items-center space-x-3 transition text-left">
+          <i class="fa-solid fa-bullhorn text-slate-400 text-base"></i>
+          <span class="text-sm font-bold text-white">Referral program</span>
+        </button>
       </div>
     </div>
 
@@ -104,32 +116,42 @@
       </div>
       <div class="flex flex-col items-center py-2 space-y-2">
         <div class="w-20 h-20 rounded-full bg-cyan-950 border-2 border-cyan-400 flex items-center justify-center overflow-hidden glow-blue">
-          <i class="fa-solid fa-user text-3xl text-cyan-300"></i>
+          <img id="profile-avatar" src="assets/default-avatar.png" alt="Avatar" class="w-full h-full object-cover">
         </div>
-        <button class="bg-slate-800 border border-slate-700 text-xs font-bold px-4 py-1.5 rounded-lg text-slate-200">
+        <button onclick="changePhoto()" class="bg-slate-800 border border-slate-700 text-xs font-bold px-4 py-1.5 rounded-lg text-slate-200 hover:border-cyan-400">
           Edit <i class="fa-solid fa-pen text-[10px] ml-1"></i>
         </button>
       </div>
       <div class="space-y-3 text-xs">
         <div class="flex justify-between items-center py-2 border-b border-slate-800/80">
           <span class="text-slate-400">Username</span>
-          <div class="flex items-center space-x-2"><span class="font-bold text-white">Khendel</span><i class="fa-solid fa-pen text-slate-500 cursor-pointer"></i></div>
+          <div class="flex items-center space-x-2">
+            <span id="user-username" class="font-bold text-white">Carregando...</span>
+            <i onclick="editUsername()" class="fa-solid fa-pen text-slate-500 hover:text-cyan-400 cursor-pointer"></i>
+          </div>
         </div>
         <div class="flex justify-between items-center py-2 border-b border-slate-800/80">
           <span class="text-slate-400">Email</span>
-          <div class="flex items-center space-x-2"><span class="font-bold text-white">khendel02@gmail.com</span><i class="fa-solid fa-pen text-slate-500 cursor-pointer"></i></div>
+          <div class="flex items-center space-x-2">
+            <span id="user-email" class="font-bold text-white">carregando...</span>
+          </div>
         </div>
         <div class="flex justify-between items-center py-2 border-b border-slate-800/80">
           <span class="text-slate-400">Password</span>
-          <div class="flex items-center space-x-2"><span class="font-mono text-white">••••••••</span><i class="fa-solid fa-pen text-slate-500 cursor-pointer"></i></div>
+          <div class="flex items-center space-x-2">
+            <span class="font-mono text-slate-400">Google Auth (Protegido)</span>
+          </div>
         </div>
         <div class="flex justify-between items-center py-2 border-b border-slate-800/80">
           <span class="text-slate-400">Registered</span>
-          <span class="font-bold text-white">2 Jan 2024</span>
+          <span id="user-registered" class="font-bold text-white">--</span>
         </div>
         <div class="flex justify-between items-center py-2">
           <span class="text-slate-400">Profile link</span>
-          <div class="flex items-center space-x-2"><span class="text-cyan-400 underline truncate max-w-[150px]">https://mitria.space/public...</span><i class="fa-regular fa-copy text-slate-400 cursor-pointer"></i></div>
+          <div class="flex items-center space-x-2">
+            <span id="profile-link-text" class="text-cyan-400 underline truncate max-w-[150px]">https://mitria.space/ref</span>
+            <i onclick="copyReferralLink()" class="fa-regular fa-copy text-slate-400 hover:text-cyan-400 cursor-pointer"></i>
+          </div>
         </div>
       </div>
     </div>
@@ -145,10 +167,10 @@
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2">
         <h4 class="font-orbitron font-bold text-xs text-slate-300">POWER</h4>
         <div class="space-y-1 text-xs">
-          <div class="flex justify-between"><span class="text-slate-400">Miners</span><span class="font-bold text-white">8.215 Th/s</span></div>
-          <div class="flex justify-between"><span class="text-slate-400">Games</span><span class="font-bold text-white">17.407 Th/s</span></div>
-          <div class="flex justify-between"><span class="text-slate-400">Temporary</span><span class="font-bold text-white">0 Gh/s</span></div>
-          <div class="flex justify-between pt-2 border-t border-slate-800 font-bold"><span class="text-emerald-400">TOTAL</span><span class="text-cyan-300 font-orbitron">25.622 Th/s</span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Miners</span><span id="stat-miners-power" class="font-bold text-white">0 Th/s</span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Games</span><span id="stat-games-power" class="font-bold text-white">0 Th/s</span></div>
+          <div class="flex justify-between"><span class="text-slate-400">Temporary</span><span id="stat-temporary-power" class="font-bold text-white">0 Gh/s</span></div>
+          <div class="flex justify-between pt-2 border-t border-slate-800 font-bold"><span class="text-emerald-400">TOTAL</span><span id="stat-total-power" class="text-cyan-300 font-orbitron">0 Th/s</span></div>
         </div>
       </div>
     </div>
@@ -162,8 +184,45 @@
         <h3 class="font-orbitron font-bold text-sm text-white tracking-wider">GAME STATISTICS</h3>
       </div>
       <div class="grid grid-cols-2 gap-2 text-xs">
-        <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center"><div class="text-slate-400 text-[10px]">Total played</div><div class="font-orbitron font-bold text-base text-cyan-300">5975</div></div>
-        <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center"><div class="text-slate-400 text-[10px]">Wins</div><div class="font-orbitron font-bold text-base text-emerald-400">5792</div></div>
+        <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center"><div class="text-slate-400 text-[10px]">Total played</div><div id="stat-games-played" class="font-orbitron font-bold text-base text-cyan-300">0</div></div>
+        <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center"><div class="text-slate-400 text-[10px]">Wins</div><div id="stat-games-won" class="font-orbitron font-bold text-base text-emerald-400">0</div></div>
+      </div>
+    </div>
+
+    <!-- TELA 4: REFERRAL PROGRAM -->
+    <div id="profile-referral" class="hidden card-bg rounded-xl p-4 space-y-4">
+      <div class="flex items-center space-x-3 border-b border-slate-800 pb-3">
+        <button onclick="switchTab('main')" class="text-cyan-400 text-xs font-bold flex items-center space-x-1">
+          <i class="fa-solid fa-chevron-left"></i><span>Back</span>
+        </button>
+        <h3 class="font-orbitron font-bold text-sm text-white tracking-wider">REFERRAL PROGRAM</h3>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
+          <div class="text-slate-400 text-[10px]">Amigos Indicados</div>
+          <div id="ref-count" class="font-orbitron font-bold text-base text-cyan-300">0</div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
+          <div class="text-slate-400 text-[10px]">Nível do Referral</div>
+          <div id="ref-level" class="font-orbitron font-bold text-base text-yellow-400">Nível 1</div>
+        </div>
+      </div>
+
+      <!-- Banner Informativo de Atualização -->
+      <div class="bg-cyan-950/40 border border-cyan-500/40 rounded-xl p-4 text-center space-y-2">
+        <div class="flex justify-center items-center space-x-2 text-yellow-400">
+          <i class="fa-solid fa-gift text-lg"></i>
+          <span class="font-orbitron font-bold text-xs uppercase tracking-wider">SISTEMA DE BONIFICAÇÃO</span>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Conforme você convida novos comandantes e sobe o seu Nível de Referral, você desbloqueará máquinas de mineração exclusivas, recursos extras e bônus em MTH!
+        </p>
+        <div class="pt-2">
+          <span class="inline-block bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 text-[10px] font-orbitron font-bold px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">
+            🚀 Em Breve nas Próximas Atualizações
+          </span>
+        </div>
       </div>
     </div>
   </main>
@@ -178,11 +237,57 @@
         menu.classList.remove('open'); menu.classList.add('closed'); overlay.classList.add('hidden');
       }
     }
+
     function switchTab(tabName) {
-      ['profile-main', 'profile-details', 'profile-statistics', 'profile-games'].forEach(id => {
-        document.getElementById(id).classList.add('hidden');
+      ['profile-main', 'profile-details', 'profile-statistics', 'profile-games', 'profile-referral'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
       });
-      document.getElementById('profile-' + tabName).classList.remove('hidden');
+      const target = document.getElementById('profile-' + tabName);
+      if (target) target.classList.remove('hidden');
+    }
+
+    // Editar Username
+    async function editUsername() {
+      const user = auth.currentUser;
+      if (!user) return;
+      const currentName = document.getElementById('user-username').textContent;
+      const newName = prompt("Digite seu novo Username:", currentName);
+      if (newName && newName.trim() !== "" && newName !== currentName) {
+        try {
+          await db.collection('users').doc(user.uid).update({ username: newName.trim() });
+          document.getElementById('user-username').textContent = newName.trim();
+          alert("Username atualizado com sucesso!");
+        } catch (e) {
+          alert("Erro ao atualizar Username: " + e.message);
+        }
+      }
+    }
+
+    // Alterar Foto de Perfil
+    async function changePhoto() {
+      const user = auth.currentUser;
+      if (!user) return;
+      const newUrl = prompt("Cole a URL da nova imagem de perfil:");
+      if (newUrl && newUrl.trim() !== "") {
+        try {
+          await db.collection('users').doc(user.uid).update({ photoURL: newUrl.trim() });
+          document.getElementById('profile-avatar').src = newUrl.trim();
+          alert("Foto de perfil atualizada!");
+        } catch (e) {
+          alert("Erro ao atualizar imagem: " + e.message);
+        }
+      }
+    }
+
+    // Copiar Link de Referral
+    function copyReferralLink() {
+      const user = auth.currentUser;
+      if (!user) return;
+      const link = `https://knd01games-alt.github.io/mitria-space-command/login.html?ref=${user.uid}`;
+      navigator.clipboard.writeText(link).then(() => {
+        alert("Link de indicação copiado!");
+      });
     }
   </script>
 </body>
