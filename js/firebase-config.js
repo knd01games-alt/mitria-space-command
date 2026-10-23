@@ -1,13 +1,15 @@
+// Configuração oficial do Firebase obtida do Console
 const firebaseConfig = {
   apiKey: "AIzaSyCHcJ728uZgRgbPPcKrAmrLShX0kmJmiY",
   authDomain: "mitria-space-command.firebaseapp.com",
   projectId: "mitria-space-command",
-  storageBucket: "mitria-space-command.appstorage.app",
+  storageBucket: "mitria-space-command.appspot.com",
   messagingSenderId: "134317688881",
   appId: "1:134317688881:web:416a1121be8ce272b5ed10",
   measurementId: "G-03QZZERVH5"
 };
 
+// Inicializa o Firebase de forma segura
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
@@ -15,11 +17,13 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// Provedor Google configurado para sempre exibir o seletor de contas
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
+// Função de Login com o Google (Popup otimizado)
 function loginWithGoogle() {
   auth.signInWithPopup(googleProvider)
     .then((result) => {
@@ -46,7 +50,7 @@ function loginWithGoogle() {
       window.location.href = 'index.html';
     })
     .catch((error) => {
-      console.error("Erro Auth Google:", error);
+      console.error("Erro no login com Google:", error);
       alert("Erro ao conectar com o Google: " + error.message);
     });
 }
