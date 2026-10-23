@@ -3,76 +3,206 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Aero Dash - Mitria Space Command</title>
-  
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-  <script src="../../js/firebase-config.js"></script>
-
+  <title>Aero Dash - Modern Sci-Fi City</title>
   <style>
     :root {
-      --bg-dark: #030712; --card-bg: #0d1117; --accent-cyan: #06b6d4; --accent-lime: #a3e635; --accent-red: #ef4444; --text-gray: #94a3b8;
+      --bg-dark: #030712;
+      --card-bg: #0d1117;
+      --accent-cyan: #06b6d4;
+      --accent-lime: #a3e635;
+      --accent-red: #ef4444;
+      --text-gray: #94a3b8;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
     body {
-      background-color: var(--bg-dark); color: #fff; font-family: 'Segoe UI', system-ui, sans-serif;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 10px; overflow-x: hidden;
+      background-color: var(--bg-dark);
+      color: #fff;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 10px;
+      overflow-x: hidden;
     }
     #game-wrapper {
-      position: relative; width: 100%; max-width: 600px; background: var(--card-bg);
-      border: 2px solid #21262d; border-radius: 12px; box-shadow: 0 0 35px rgba(6, 182, 212, 0.2); overflow: hidden;
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+      background: var(--card-bg);
+      border: 2px solid #21262d;
+      border-radius: 12px;
+      box-shadow: 0 0 35px rgba(6, 182, 212, 0.2);
+      overflow: hidden;
     }
     .game-topbar {
-      display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: #090d16; border-bottom: 1px solid #21262d; font-size: 13px; font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: #090d16;
+      border-bottom: 1px solid #21262d;
+      font-size: 13px;
+      font-weight: bold;
     }
-    .topbar-item { display: flex; flex-direction: column; align-items: center; }
-    .topbar-label { font-size: 9px; color: var(--text-gray); text-transform: uppercase; }
-    .topbar-val { font-size: 14px; color: var(--accent-cyan); }
-    .audio-btn { background: #161b22; border: 1px solid #30363d; color: #fff; padding: 5px 8px; border-radius: 6px; font-size: 13px; cursor: pointer; }
-    canvas { display: block; width: 100%; height: auto; aspect-ratio: 800 / 480; background: #030712; cursor: pointer; touch-action: none; }
+    .topbar-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .topbar-label {
+      font-size: 9px;
+      color: var(--text-gray);
+      text-transform: uppercase;
+    }
+    .topbar-val {
+      font-size: 14px;
+      color: var(--accent-cyan);
+    }
+    .audio-btn {
+      background: #161b22;
+      border: 1px solid #30363d;
+      color: #fff;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 800 / 480;
+      background: #030712;
+      cursor: pointer;
+      touch-action: none;
+    }
     .overlay {
-      position: absolute; top: 45px; left: 0; width: 100%; height: calc(100% - 45px);
-      background: rgba(3, 7, 18, 0.95); backdrop-filter: blur(6px);
-      display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; padding: 20px; text-align: center;
+      position: absolute;
+      top: 45px;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 45px);
+      background: rgba(3, 7, 18, 0.95);
+      backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      padding: 20px;
+      text-align: center;
     }
-    .overlay.hidden { display: none; }
-    .overlay-title { font-size: 24px; font-weight: 900; margin-bottom: 6px; letter-spacing: 1px; }
-    .overlay-desc { font-size: 12px; color: var(--text-gray); margin-bottom: 20px; max-width: 290px; line-height: 1.4; }
-    .countdown-number { font-size: 64px; font-weight: 900; color: var(--accent-cyan); animation: pulse 0.5s ease-in-out infinite alternate; }
-    @keyframes pulse { from { transform: scale(0.9); } to { transform: scale(1.1); } }
-    .btn-group { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 240px; }
-    .btn { padding: 10px 16px; border: none; border-radius: 6px; font-weight: 800; font-size: 13px; cursor: pointer; text-decoration: none; text-align: center; }
-    .btn-primary { background: var(--accent-cyan); color: #000; }
-    .btn-success { background: var(--accent-lime); color: #000; }
-    .btn-secondary { background: #30363d; color: #fff; }
-    .level-badge { background: var(--accent-lime); color: #000; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 800; margin-bottom: 10px; }
+    .overlay.hidden {
+      display: none;
+    }
+    .overlay-title {
+      font-size: 24px;
+      font-weight: 900;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+    .overlay-desc {
+      font-size: 12px;
+      color: var(--text-gray);
+      margin-bottom: 20px;
+      max-width: 290px;
+      line-height: 1.4;
+    }
+    .countdown-number {
+      font-size: 64px;
+      font-weight: 900;
+      color: var(--accent-cyan);
+      animation: pulse 0.5s ease-in-out infinite alternate;
+    }
+    @keyframes pulse {
+      from { transform: scale(0.9); }
+      to { transform: scale(1.1); }
+    }
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 240px;
+    }
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+    .btn-primary {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+    .btn-success {
+      background: var(--accent-lime);
+      color: #000;
+    }
+    .btn-secondary {
+      background: #30363d;
+      color: #fff;
+    }
+    .btn-home {
+      background: #161b22;
+      color: var(--text-gray);
+      border: 1px solid #30363d;
+    }
+    .level-badge {
+      background: var(--accent-lime);
+      color: #000;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
   <div id="game-wrapper">
     <div class="game-topbar">
       <div class="topbar-item">
-        <span class="topbar-label">Status</span>
-        <span class="topbar-val" id="ui-stage">Aero Dash - Jogo Ativo</span>
+        <span class="topbar-label">Nível / Fase</span>
+        <span class="topbar-val" id="ui-stage">Nível 1 - Fase 1/30</span>
       </div>
       <div class="topbar-item">
         <span class="topbar-label">Vidas</span>
         <span class="topbar-val" id="ui-lives" style="color: var(--accent-red);">❤️ ❤️ ❤️</span>
       </div>
       <div class="topbar-item">
-        <span class="topbar-label">Objetivo</span>
+        <span class="topbar-label">Torres</span>
         <span class="topbar-val" id="ui-score" style="color: var(--accent-lime);">0 / 10</span>
       </div>
-      <button class="audio-btn" onclick="toggleAudio()"><span id="audio-icon">🔊</span></button>
+      <button class="audio-btn" onclick="toggleAudio()">
+        <span id="audio-icon">🔊</span>
+      </button>
     </div>
 
     <canvas id="gameCanvas" width="800" height="480"></canvas>
 
     <div id="overlay" class="overlay">
-      <span id="level-badge" class="level-badge">AERO DASH</span>
-      <h2 id="overlay-title" class="overlay-title" style="color: var(--accent-cyan);">PRONTO PARA PILOTAR?</h2>
-      <p id="overlay-desc" class="overlay-desc">Desvie dos obstáculos e complete o percurso para avançar de fase.</p>
+      <span id="level-badge" class="level-badge">NÍVEL 1 - FASE 1 DE 30</span>
+      <h2 id="overlay-title" class="overlay-title" style="color: var(--accent-cyan);">AERO DASH</h2>
+      <p id="overlay-desc" class="overlay-desc">
+        Pilote a nave Aurora-1 pela metrópole Sci-Fi! Evite colisões com as 3 vidas disponíveis.
+      </p>
 
       <div id="countdown-box" style="display: none;">
         <div id="countdown-num" class="countdown-number">3</div>
@@ -80,8 +210,9 @@
 
       <div id="btn-group" class="btn-group">
         <button id="btn-start" class="btn btn-primary" onclick="startCountdown()">INICIAR JOGO</button>
-        <button id="btn-finish" class="btn btn-success" style="display: none;" onclick="goToSync()">ENVIAR DADOS PARA A NUVEM ➔</button>
+        <button id="btn-finish" class="btn btn-success" style="display: none;" onclick="goToSync()">CONCLUIR FASE ➔</button>
         <a id="btn-games" href="../index.html" class="btn btn-secondary">← Voltar para o Hub</a>
+        <a id="btn-home" href="../../index.html" class="btn btn-home" style="display: none;">🏠 Home Page</a>
       </div>
     </div>
   </div>
@@ -89,129 +220,561 @@
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+
     const overlay = document.getElementById('overlay');
     const overlayTitle = document.getElementById('overlay-title');
     const overlayDesc = document.getElementById('overlay-desc');
+    const levelBadge = document.getElementById('level-badge');
     const countdownBox = document.getElementById('countdown-box');
     const countdownNum = document.getElementById('countdown-num');
     const btnGroup = document.getElementById('btn-group');
     const btnStart = document.getElementById('btn-start');
     const btnFinish = document.getElementById('btn-finish');
+    const btnGames = document.getElementById('btn-games');
+    const btnHome = document.getElementById('btn-home');
 
+    const uiStage = document.getElementById('ui-stage');
     const uiLives = document.getElementById('ui-lives');
     const uiScore = document.getElementById('ui-score');
     const audioIcon = document.getElementById('audio-icon');
 
-    let audioEnabled = true, audioCtx = null;
-    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-    function toggleAudio() { audioEnabled = !audioEnabled; audioIcon.innerText = audioEnabled ? '🔊' : '🔇'; }
+    let audioEnabled = true;
+    let audioCtx = null;
+    let bgMusicTimer = null;
 
-    let gameActive = false, score = 0, lives = 3, targetObstacles = 10, distanceTraveled = 0;
-    const ship = { x: 120, y: 240, width: 50, height: 24, gravity: 0.19, lift: -4.8, velocity: 0 };
-    let pipes = [], pipeTimer = 0;
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
 
-    const stars = Array.from({ length: 50 }, () => ({ x: Math.random() * 800, y: Math.random() * 480, size: Math.random() * 2 + 0.5, speed: Math.random() * 0.3 + 0.1 }));
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      audioIcon.innerText = audioEnabled ? '🔊' : '🔇';
+      if (!audioEnabled && bgMusicTimer) {
+        clearInterval(bgMusicTimer);
+        bgMusicTimer = null;
+      } else if (audioEnabled && gameActive) {
+        startBgMusic();
+      }
+    }
+
+    function playJumpSound() {
+      if (!audioEnabled) return;
+      initAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+      osc.connect(gain);
+      osc.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function playCrashSound() {
+      if (!audioEnabled) return;
+      initAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.connect(gain);
+      osc.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
+    }
+
+    function startBgMusic() {
+      if (!audioEnabled || bgMusicTimer) return;
+      initAudio();
+      const notes = [220, 246.94, 261.63, 293.66];
+      let step = 0;
+      bgMusicTimer = setInterval(() => {
+        if (!gameActive || !audioEnabled) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(notes[step % notes.length], audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+        step++;
+      }, 500);
+    }
+
+    function stopBgMusic() {
+      if (bgMusicTimer) {
+        clearInterval(bgMusicTimer);
+        bgMusicTimer = null;
+      }
+    }
+
+    let currentPhase = 1;
+    let gameActive = false;
+    let score = 0;
+    let lives = 3;
+    let targetObstacles = 10;
+    let distanceTraveled = 0;
+
+    const ship = {
+      x: 120,
+      y: 240,
+      width: 50,
+      height: 24,
+      gravity: 0.19,
+      lift: -4.8,
+      velocity: 0
+    };
+
+    let pipes = [];
+    let pipeTimer = 0;
+
+    const stars = Array.from({ length: 60 }, () => ({
+      x: Math.random() * 800,
+      y: Math.random() * 480,
+      size: Math.random() * 2 + 0.5,
+      alpha: Math.random(),
+      speed: Math.random() * 0.3 + 0.1
+    }));
+
+    const cityBuildingsFar = [
+      { type: 'pyramid', x: 0, w: 100, h: 280 },
+      { type: 'slant-right', x: 120, w: 90, h: 320 },
+      { type: 'antenna-tower', x: 230, w: 70, h: 380 },
+      { type: 'slant-left', x: 320, w: 110, h: 300 },
+      { type: 'hex-tower', x: 450, w: 95, h: 350 },
+      { type: 'step-pyramid', x: 570, w: 120, h: 290 },
+      { type: 'slant-right', x: 710, w: 100, h: 340 }
+    ];
+
+    const cityBuildingsNear = [
+      { type: 'antenna-tower', x: 0, w: 80, h: 260 },
+      { type: 'slant-left', x: 100, w: 100, h: 220 },
+      { type: 'pyramid', x: 220, w: 110, h: 250 },
+      { type: 'hex-tower', x: 350, w: 85, h: 280 },
+      { type: 'slant-right', x: 460, w: 105, h: 240 },
+      { type: 'step-pyramid', x: 580, w: 115, h: 210 },
+      { type: 'antenna-tower', x: 710, w: 90, h: 270 }
+    ];
+
+    function getPhaseConfig(phase) {
+      const level = Math.min(6, Math.floor((phase - 1) / 5) + 1);
+      let speedFactor = 1.0 + Math.floor((level - 1) / 2) * 0.25;
+      if (level >= 5) speedFactor = 1.5;
+      const targetObs = 8 + Math.floor(phase * 0.5);
+      return {
+        level: level,
+        phase: phase,
+        pipeSpeed: 2.6 * speedFactor,
+        spawnInterval: Math.max(100, 150 - (level * 5)),
+        targetObstacles: targetObs
+      };
+    }
 
     function updateLivesUI() {
-      let hearts = ""; for (let i = 0; i < lives; i++) hearts += "❤️ ";
+      let hearts = "";
+      for (let i = 0; i < lives; i++) hearts += "❤️ ";
       uiLives.innerText = hearts || "💀";
     }
 
     function resetGame() {
-      ship.y = 240; ship.velocity = 0; pipes = []; pipeTimer = 0; score = 0; lives = 3; distanceTraveled = 0;
+      const cfg = getPhaseConfig(currentPhase);
+      ship.y = 240;
+      ship.velocity = 0;
+      pipes = [];
+      pipeTimer = 0;
+      score = 0;
+      lives = 3;
+      distanceTraveled = 0;
+      targetObstacles = cfg.targetObstacles;
       updateLivesUI();
     }
 
     function handleHit() {
-      lives--; updateLivesUI();
+      playCrashSound();
+      lives--;
+      updateLivesUI();
       if (lives <= 0) {
         endGame(false, "A nave sofreu danos críticos e foi destruída!");
       } else {
-        ship.y = 240; ship.velocity = 0; pipes = []; pipeTimer = 0;
+        ship.y = 240;
+        ship.velocity = 0;
+        pipes = [];
+        pipeTimer = 0;
       }
     }
 
-    function render() {
-      ctx.fillStyle = '#030712'; ctx.fillRect(0, 0, 800, 480);
+    function drawSciFiBuilding(b, offsetX, color, glowColor) {
+      let x = (b.x + offsetX) % 900;
+      if (x < -150) x += 900;
+      let y = 480 - b.h;
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      if (b.type === 'pyramid') {
+        ctx.moveTo(x + 20, y);
+        ctx.lineTo(x + b.w - 20, y);
+        ctx.lineTo(x + b.w, 480);
+        ctx.lineTo(x, 480);
+      } else if (b.type === 'slant-right') {
+        ctx.moveTo(x, y + 30);
+        ctx.lineTo(x + b.w, y);
+        ctx.lineTo(x + b.w, 480);
+        ctx.lineTo(x, 480);
+      } else if (b.type === 'slant-left') {
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + b.w, y + 30);
+        ctx.lineTo(x + b.w, 480);
+        ctx.lineTo(x, 480);
+      } else if (b.type === 'antenna-tower') {
+        ctx.moveTo(x + 10, y + 40);
+        ctx.lineTo(x + b.w / 2 - 2, y + 40);
+        ctx.lineTo(x + b.w / 2 - 2, y);
+        ctx.lineTo(x + b.w / 2 + 2, y);
+        ctx.lineTo(x + b.w / 2 + 2, y + 40);
+        ctx.lineTo(x + b.w - 10, y + 40);
+        ctx.lineTo(x + b.w, 480);
+        ctx.lineTo(x, 480);
+      } else {
+        ctx.moveTo(x + 15, y);
+        ctx.lineTo(x + b.w - 15, y);
+        ctx.lineTo(x + b.w - 15, y + 40);
+        ctx.lineTo(x + b.w, y + 40);
+        ctx.lineTo(x + b.w, 480);
+        ctx.lineTo(x, 480);
+        ctx.lineTo(x, y + 40);
+        ctx.lineTo(x + 15, y + 40);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = glowColor;
+      for (let wy = y + 50; wy < 460; wy += 35) {
+        ctx.fillRect(x + 12, wy, 6, 12);
+        ctx.fillRect(x + b.w - 18, wy, 6, 12);
+      }
+    }
+
+    function drawSciFiCityBackground() {
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, 480);
+      bgGrad.addColorStop(0, '#030712');
+      bgGrad.addColorStop(0.5, '#090d16');
+      bgGrad.addColorStop(1, '#0f172a');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, 800, 480);
+
       stars.forEach(s => {
-        s.x -= s.speed; if (s.x < 0) s.x = 800;
-        ctx.fillStyle = '#ffffff'; ctx.fillRect(s.x, s.y, s.size, s.size);
+        s.x -= s.speed;
+        if (s.x < 0) s.x = 800;
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha})`;
+        ctx.fillRect(s.x, s.y, s.size, s.size);
       });
-      // Desenha obstáculos (canos)
-      pipes.forEach(p => {
-        ctx.fillStyle = '#1e293b'; ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2;
-        ctx.fillRect(p.x, 0, p.width, p.top); ctx.strokeRect(p.x, 0, p.width, p.top);
-        ctx.fillRect(p.x, p.bottom, p.width, 480 - p.bottom); ctx.strokeRect(p.x, p.bottom, p.width, 480 - p.bottom);
+
+      let offsetFar = -(distanceTraveled * 0.15);
+      cityBuildingsFar.forEach(b => {
+        drawSciFiBuilding(b, offsetFar, '#111827', 'rgba(6, 182, 212, 0.4)');
       });
-      // Desenha nave
-      ctx.save(); ctx.translate(ship.x, ship.y);
-      ctx.fillStyle = '#ef4444'; ctx.fillRect(-22, -10, 48, 20);
+
+      let offsetNear = -(distanceTraveled * 0.35);
+      cityBuildingsNear.forEach(b => {
+        drawSciFiBuilding(b, offsetNear, '#1e293b', 'rgba(163, 230, 53, 0.5)');
+      });
+
+      ctx.fillStyle = '#06b6d4';
+      ctx.fillRect(0, 0, 800, 8);
+      ctx.fillRect(0, 472, 800, 8);
+    }
+
+    function drawShip() {
+      ctx.save();
+      ctx.translate(ship.x, ship.y);
+      let rot = Math.min(Math.PI / 6, Math.max(-Math.PI / 6, ship.velocity * 0.04));
+      ctx.rotate(rot);
+
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.moveTo(-24, -5);
+      ctx.lineTo(-38 - Math.random() * 10, 0);
+      ctx.lineTo(-24, 5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      const shipGrad = ctx.createLinearGradient(0, -12, 0, 12);
+      shipGrad.addColorStop(0, '#ef4444');
+      shipGrad.addColorStop(0.5, '#b91c1c');
+      shipGrad.addColorStop(1, '#7f1d1d');
+      ctx.fillStyle = shipGrad;
+      ctx.beginPath();
+      ctx.moveTo(-22, 10);
+      ctx.lineTo(26, 0);
+      ctx.lineTo(-22, -10);
+      ctx.lineTo(-14, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#67e8f9';
+      ctx.beginPath();
+      ctx.ellipse(4, -1, 9, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
       ctx.restore();
+    }
+
+    function drawPipes() {
+      pipes.forEach(p => {
+        ctx.fillStyle = '#1e293b';
+        ctx.strokeStyle = '#06b6d4';
+        ctx.lineWidth = 2.5;
+
+        ctx.fillRect(p.x, 0, p.width, p.top);
+        ctx.strokeRect(p.x, 0, p.width, p.top);
+
+        ctx.fillStyle = '#06b6d4';
+        ctx.fillRect(p.x + 6, 20, p.width - 12, p.top - 40);
+
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(p.x - 4, p.top - 14, p.width + 8, 14);
+        ctx.strokeRect(p.x - 4, p.top - 14, p.width + 8, 14);
+
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(p.x, p.bottom, p.width, 480 - p.bottom);
+        ctx.strokeRect(p.x, p.bottom, p.width, 480 - p.bottom);
+
+        ctx.fillStyle = '#06b6d4';
+        ctx.fillRect(p.x + 6, p.bottom + 20, p.width - 12, (480 - p.bottom) - 40);
+
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(p.x - 4, p.bottom, p.width + 8, 14);
+        ctx.strokeRect(p.x - 4, p.bottom, p.width + 8, 14);
+      });
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawSciFiCityBackground();
+      drawPipes();
+      drawShip();
     }
 
     function update() {
       if (!gameActive) return;
-      ship.velocity += ship.gravity; ship.y += ship.velocity; distanceTraveled += 3.0;
-      if (ship.y <= 10 || ship.y >= 470) { handleHit(); return; }
-      pipeTimer++;
-      if (pipeTimer >= 110) {
-        pipeTimer = 0;
-        let topHeight = Math.floor(Math.random() * 160) + 50;
-        pipes.push({ x: 800, width: 65, top: topHeight, bottom: topHeight + 170, passed: false });
+
+      const cfg = getPhaseConfig(currentPhase);
+      ship.velocity += ship.gravity;
+      ship.y += ship.velocity;
+      distanceTraveled += cfg.pipeSpeed;
+
+      if (ship.y - ship.height / 2 <= 8 || ship.y + ship.height / 2 >= 472) {
+        handleHit();
+        return;
       }
+
+      pipeTimer++;
+      if (pipeTimer >= cfg.spawnInterval) {
+        pipeTimer = 0;
+        let gapHeight = 165;
+        let topHeight = Math.floor(Math.random() * 180) + 50;
+        pipes.push({
+          x: 800,
+          width: 65,
+          top: topHeight,
+          bottom: topHeight + gapHeight,
+          passed: false
+        });
+      }
+
       for (let i = pipes.length - 1; i >= 0; i--) {
-        let p = pipes[i]; p.x -= 3.0;
-        if (ship.x + 25 > p.x && ship.x - 25 < p.x + p.width && (ship.y - 12 < p.top || ship.y + 12 > p.bottom)) {
-          handleHit(); return;
+        let p = pipes[i];
+        p.x -= cfg.pipeSpeed;
+
+        if (
+          ship.x + ship.width / 2 > p.x &&
+          ship.x - ship.width / 2 < p.x + p.width &&
+          (ship.y - ship.height / 2 < p.top || ship.y + ship.height / 2 > p.bottom)
+        ) {
+          handleHit();
+          return;
         }
+
         if (!p.passed && p.x + p.width < ship.x) {
-          p.passed = true; score++; uiScore.innerText = `${score} / ${targetObstacles}`;
-          if (score >= targetObstacles) { triggerPhaseComplete(); return; }
+          p.passed = true;
+          score++;
+          uiScore.innerText = `${score} / ${targetObstacles}`;
+
+          if (score >= targetObstacles) {
+            triggerPhaseComplete();
+            return;
+          }
         }
-        if (p.x + p.width < 0) pipes.splice(i, 1);
+
+        if (p.x + p.width < 0) {
+          pipes.splice(i, 1);
+        }
       }
     }
 
-    function gameLoop() { update(); render(); if (gameActive) requestAnimationFrame(gameLoop); }
-    function jump() { if (!gameActive) return; ship.velocity = ship.lift; initAudio(); }
+    function gameLoop() {
+      update();
+      render();
+      if (gameActive) {
+        requestAnimationFrame(gameLoop);
+      }
+    }
+
+    function jump() {
+      if (!gameActive) return;
+      ship.velocity = ship.lift;
+      playJumpSound();
+    }
 
     canvas.addEventListener('click', jump);
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); }, { passive: false });
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      jump();
+    }, { passive: false });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        jump();
+      }
+    });
+
+    function updateUIHeader() {
+      const cfg = getPhaseConfig(currentPhase);
+      if (currentPhase > 30) {
+        uiStage.innerText = `Fase 30/30 (MAX)`;
+        levelBadge.innerText = `JOGO CONCLUÍDO`;
+      } else {
+        uiStage.innerText = `Nível ${cfg.level} - Fase ${currentPhase}/30`;
+        levelBadge.innerText = `NÍVEL ${cfg.level} - FASE ${currentPhase} DE 30`;
+      }
+    }
 
     function startCountdown() {
-      btnGroup.style.display = 'none'; countdownBox.style.display = 'block';
-      let count = 3; countdownNum.innerText = count;
+      if (currentPhase > 30) {
+        alert("Parabéns! Todas as 30 fases diárias já foram concluídas.");
+        window.location.href = "../index.html";
+        return;
+      }
+
+      initAudio();
+      btnGroup.style.display = 'none';
+      countdownBox.style.display = 'block';
+      let count = 3;
+      countdownNum.innerText = count;
+
       const cdInterval = setInterval(() => {
         count--;
-        if (count > 0) countdownNum.innerText = count;
-        else if (count === 0) countdownNum.innerText = "READY!";
-        else {
-          clearInterval(cdInterval); countdownBox.style.display = 'none';
-          overlay.classList.add('hidden'); gameActive = true; resetGame(); runGame();
+        if (count > 0) {
+          countdownNum.innerText = count;
+        } else if (count === 0) {
+          countdownNum.innerText = "READY!";
+        } else {
+          clearInterval(cdInterval);
+          countdownBox.style.display = 'none';
+          overlay.classList.add('hidden');
+          runGame();
         }
       }, 750);
     }
 
-    function runGame() { render(); requestAnimationFrame(gameLoop); }
-
-    function triggerPhaseComplete() {
-      gameActive = false; overlay.classList.remove('hidden');
-      overlayTitle.innerText = "FASE CONCLUÍDA!"; overlayTitle.style.color = "var(--accent-lime)";
-      overlayDesc.innerText = "Parabéns! Clique abaixo para registrar o avanço na nuvem.";
-      btnStart.style.display = 'none'; btnFinish.style.display = 'block';
+    function runGame() {
+      resetGame();
+      gameActive = true;
+      updateUIHeader();
+      uiScore.innerText = `0 / ${targetObstacles}`;
+      startBgMusic();
+      render();
+      requestAnimationFrame(gameLoop);
     }
 
+    function triggerPhaseComplete() {
+      gameActive = false;
+      stopBgMusic();
+      overlay.classList.remove('hidden');
+
+      const cfg = getPhaseConfig(currentPhase);
+      levelBadge.innerText = `NÍVEL ${cfg.level} - FASE ${currentPhase} DE 30`;
+
+      if (currentPhase >= 30) {
+        overlayTitle.innerText = "PARABÉNS! JOGO CONCLUÍDO!";
+        overlayTitle.style.color = "var(--accent-lime)";
+        overlayDesc.innerText = "Você concluiu com sucesso todas as 30 fases do Aero Dash!";
+      } else {
+        overlayTitle.innerText = "FASE CONCLUÍDA!";
+        overlayTitle.style.color = "var(--accent-lime)";
+        overlayDesc.innerText = "Excelente pilotagem! Clique no botão abaixo para prosseguir e transferir os dados.";
+      }
+
+      btnStart.style.display = 'none';
+      btnFinish.style.display = 'block';
+      btnGames.style.display = 'block';
+      btnHome.style.display = 'none';
+      btnGroup.style.display = 'flex';
+    }
+
+    // MODIFICAÇÃO ÚNICA: Envia direto para o sync.html sem localStorage local
     function goToSync() {
       window.location.href = `../sync.html?game=aero_dash`;
     }
 
     function endGame(won, reason) {
-      gameActive = false; overlay.classList.remove('hidden');
-      overlayTitle.innerText = "GAME OVER"; overlayTitle.style.color = "var(--accent-red)";
-      overlayDesc.innerText = reason; btnStart.innerText = "TENTAR NOVAMENTE";
-      btnStart.style.display = 'block'; btnFinish.style.display = 'none';
+      gameActive = false;
+      stopBgMusic();
+
+      const cfg = getPhaseConfig(currentPhase);
+      overlay.classList.remove('hidden');
+      levelBadge.innerText = `NÍVEL ${cfg.level} - FASE ${currentPhase} DE 30`;
+
+      if (won) {
+        triggerPhaseComplete();
+      } else {
+        overlayTitle.innerText = "GAME OVER";
+        overlayTitle.style.color = "var(--accent-red)";
+        overlayDesc.innerText = reason;
+        btnStart.innerText = "TENTAR NOVAMENTE";
+        btnStart.style.display = 'block';
+        btnFinish.style.display = 'none';
+        btnGames.innerText = "← Voltar ao Game Hub";
+        btnGames.style.display = 'block';
+        btnHome.style.display = 'none';
+        btnGroup.style.display = 'flex';
+      }
     }
 
+    // Lê a fase atual direto da nuvem para exibir corretamente no topo
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        window.location.href = "../../login.html";
+      } else {
+        try {
+          const userRef = db.collection('users').doc(user.uid);
+          const doc = await userRef.get();
+          if (doc.exists) {
+            const data = doc.data();
+            currentPhase = data.ad_stage || 1;
+            updateUIHeader();
+          }
+        } catch (err) {
+          console.error("Erro ao carregar fase do Aero Dash:", err);
+        }
+      }
+    });
+
+    updateUIHeader();
     render();
   </script>
 </body>
