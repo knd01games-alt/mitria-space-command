@@ -38,7 +38,7 @@
 
   <div class="sync-container">
     <h2 class="sync-title">TRANSMISSÃO DE DADOS DO DATA CENTER</h2>
-    <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 14px;" id="sync-status">Sincronizando fase e Rest Power na nuvem...</p>
+    <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 14px;" id="sync-status">Calculando fases, níveis e Rest Power...</p>
 
     <canvas id="dcCanvas" width="500" height="200"></canvas>
 
@@ -55,10 +55,10 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const game = urlParams.get('game') || 'token_blaster';
+    const game = urlParams.get('game') || 'aero_dash';
     let wonBonus = false;
 
-    // Mapa de identificadores para os 5 jogos
+    // Mapa de chaves para os jogos
     const gameKeyMap = {
       'token_blaster': 'tb',
       'coin_catcher': 'cc',
@@ -66,10 +66,10 @@
       'crypto_2048': 'c2048',
       'aero_dash': 'ad'
     };
-    const shortKey = gameKeyMap[game] || 'tb';
+    const shortKey = gameKeyMap[game] || 'ad';
     const stageField = `${shortKey}_stage`;
 
-    // Processamento centralizado na nuvem (Firestore)
+    // Processamento atômico centralizado no Firestore
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
         window.location.href = "../login.html";
@@ -79,7 +79,7 @@
           const doc = await userRef.get();
           let data = doc.exists ? doc.data() : {};
 
-          // Regra de Reset Diário às 21:00 (Horário de Brasília)
+          // Regra de Reset Diário às 21:00 (Brasília)
           const now = new Date();
           const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
           const brasiliaTime = new Date(utc - (3 * 3600000));
@@ -87,58 +87,74 @@
           let currentHour = brasiliaTime.getHours();
           let lastReset = data.lastResetDate || '';
 
-          let currentStage = parseInt(data[stageField] || 1);
-
-          // Se mudou o dia e passou das 21h, reseta as fases e pontos do dia
+          // Se passou das 21h e mudou o dia, reseta tudo
           if (lastReset !== todayDateStr && currentHour >= 21) {
             data.tb_stage = 1;
             data.cc_stage = 1;
             data.match3_stage = 1;
             data.crypto_2048_stage = 1;
             data.ad_stage = 1;
-            currentStage = 1;
-            todayDateStr = todayDateStr;
           }
 
-          // Avança a fase se estiver abaixo de 30
+          // Pega a fase atual do jogo específico e avança +1 (até o limite de 30)
+          let currentStage = parseInt(data[stageField] || 1);
           if (currentStage < 30) {
             currentStage += 1;
           }
-
           data[stageField] = currentStage;
 
-          // Estatísticas gerais
+          // Calcula o Nível atual (a cada 5 fases = 1 nível)
+          let currentLevel = Math.floor((currentStage - 1) / 5) + 1;
+
           let gamesPlayed = (data.gamesPlayed || 0) + 1;
           let bonusExtra = data.bonusExtra || 0;
 
+          // Sorteio de 5% de chance de bônus extra
           if (Math.random() < 0.05) {
             wonBonus = true;
             bonusExtra += 100;
             document.getElementById('bonus-card').style.display = 'block';
           }
 
-          // Cálculo do Rest Power unificado para os 5 jogos
+          // Atualiza as fases na estrutura de dados
           let tbS = data.tb_stage || 1;
           let ccS = data.cc_stage || 1;
           let m3S = data.match3_stage || 1;
           let c2048S = data.crypto_2048_stage || 1;
           let adS = data.ad_stage || 1;
 
+          // Cálculo exato do Rest Power por jogo com progressão de nível (multiplicador)
           let tbHS = 0;
           for (let s = 1; s < Math.min(tbS, 31); s++) {
             let lvl = Math.floor((s - 1) / 5) + 1;
             tbHS += 21 * (1 + (lvl - 1) * 0.20);
           }
-          let ccHS = (Math.min(ccS, 31) - 1) * 15;
-          let m3HS = (Math.min(m3S, 31) - 1) * 15;
-          let c2048HS = (Math.min(c2048S, 31) - 1) * 16.5;
-          let adHS = (Math.min(adS, 31) - 1) * 16.5;
+          let ccHS = 0;
+          for (let s = 1; s < Math.min(ccS, 31); s++) {
+            let lvl = Math.floor((s - 1) / 5) + 1;
+            ccHS += 15 * (1 + (lvl - 1) * 0.20);
+          }
+          let m3HS = 0;
+          for (let s = 1; s < Math.min(m3S, 31); s++) {
+            let lvl = Math.floor((s - 1) / 5) + 1;
+            m3HS += 15 * (1 + (lvl - 1) * 0.20);
+          }
+          let c2048HS = 0;
+          for (let s = 1; s < Math.min(c2048S, 31); s++) {
+            let lvl = Math.floor((s - 1) / 5) + 1;
+            c2048HS += 16.5 * (1 + (lvl - 1) * 0.20);
+          }
+          let adHS = 0;
+          for (let s = 1; s < Math.min(adS, 31); s++) {
+            let lvl = Math.floor((s - 1) / 5) + 1;
+            adHS += 16.5 * (1 + (lvl - 1) * 0.20);
+          }
 
           let gamesPower = tbHS + ccHS + m3HS + c2048HS + adHS;
           let minersPower = data.minersPower || 0;
           let totalPower = minersPower + gamesPower + bonusExtra;
 
-          // Grava todas as informações atualizadas de forma centralizada no Firestore
+          // Grava na nuvem vinculado ao ID do usuário
           await userRef.set({
             tb_stage: tbS,
             cc_stage: ccS,
@@ -153,16 +169,16 @@
             [`lastPlay_${game}`]: Date.now()
           }, { merge: true });
 
-          document.getElementById('sync-status').innerText = `Fase ${currentStage} registrada com sucesso na nuvem!`;
+          document.getElementById('sync-status').innerText = `Nível ${currentLevel} - Fase ${currentStage}/30 sincronizados com sucesso!`;
 
         } catch (err) {
-          console.error("Erro na sincronização central:", err);
+          console.error("Erro na sincronização:", err);
           document.getElementById('sync-status').innerText = "Erro ao salvar na nuvem.";
         }
       }
     });
 
-    // Animação visual da barra de progresso
+    // Animação da barra
     const canvas = document.getElementById('dcCanvas');
     const ctx = canvas.getContext('2d');
     const progressFill = document.getElementById('progress-fill');
