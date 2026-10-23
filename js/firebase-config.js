@@ -1,4 +1,4 @@
-// Configuração limpa do Firebase para o Mitria Space Command
+// Configuração limpa e otimizada do Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCHcJ728uZgRgbPPcKrAmrLShX0kmJmiY",
   authDomain: "mitria-space-command.firebaseapp.com",
@@ -9,7 +9,7 @@ const firebaseConfig = {
   measurementId: "G-03QZZERVH5"
 };
 
-// Inicializa o Firebase com segurança
+// Inicializa o Firebase
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
@@ -17,42 +17,43 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Configura o provedor do Google para exibir o seletor de contas
+// Provedor Google configurado para SELETOR DE CONTAS
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
-// Função global para login com Google
-function loginWithGoogle() {
-  auth.signInWithPopup(googleProvider)
-    .then((result) => {
-      const user = result.user;
-      // Verifica se o usuário já tem registro no Firestore, senão cria perfil zerado
-      db.collection('users').doc(user.uid).get().then((doc) => {
-        if (!doc.exists) {
-          db.collection('users').doc(user.uid).set({
-            username: user.displayName || 'Comandante',
-            email: user.email,
-            photoURL: user.photoURL || '',
-            mthBalance: 0.00,
-            totalPower: 0,
-            minersPower: 0,
-            gamesPower: 0,
-            temporaryPower: 0,
-            gamesPlayed: 0,
-            gamesWon: 0,
-            createdAt: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
-          }).then(() => {
-            window.location.href = 'index.html';
-          });
-        } else {
+// Trata o resultado do login quando o usuário retorna da tela do Google
+auth.getRedirectResult().then((result) => {
+  if (result.user) {
+    const user = result.user;
+    db.collection('users').doc(user.uid).get().then((doc) => {
+      if (!doc.exists) {
+        db.collection('users').doc(user.uid).set({
+          username: user.displayName || 'Comandante',
+          email: user.email,
+          photoURL: user.photoURL || '',
+          mthBalance: 0.00,
+          totalPower: 0,
+          minersPower: 0,
+          gamesPower: 0,
+          temporaryPower: 0,
+          gamesPlayed: 0,
+          gamesWon: 0,
+          createdAt: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+        }).then(() => {
           window.location.href = 'index.html';
-        }
-      });
-    })
-    .catch((error) => {
-      console.error("Erro no login Google:", error);
-      alert("Erro ao realizar login com o Google: " + error.message);
+        });
+      } else {
+        window.location.href = 'index.html';
+      }
     });
+  }
+}).catch((error) => {
+  console.error("Erro no retorno do login:", error);
+});
+
+// Função global acionada ao clicar no botão "Continuar com o Google"
+function loginWithGoogle() {
+  auth.signInWithRedirect(googleProvider);
 }
