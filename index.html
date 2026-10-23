@@ -18,53 +18,38 @@
         if (!user) {
           window.location.href = "login.html";
         } else {
-          loadUserTelemetryFromDatabase(user.uid);
+          try {
+            const userRef = db.collection('users').doc(user.uid);
+            const doc = await userRef.get();
+
+            let gamesPower = 0;
+            let mthBalance = 0;
+
+            if (doc.exists) {
+              const data = doc.data();
+              gamesPower = data.gamesPower || 0;
+              mthBalance = data.mthBalance || 0;
+
+              const balanceEl = document.getElementById('header-mth-balance');
+              if (balanceEl) balanceEl.innerText = Number(mthBalance).toFixed(2);
+            }
+
+            const powerEl = document.getElementById('telemetry-user-power');
+            if (powerEl) {
+              powerEl.innerText = gamesPower.toFixed(1) + " HS";
+            }
+
+            const globalPoolEl = document.getElementById('global-network-pool');
+            if (globalPoolEl) {
+              let globalVal = gamesPower > 0 ? (gamesPower * 0.001).toFixed(3) + " Eh/s" : "0.000 Eh/s";
+              globalPoolEl.innerText = globalVal;
+            }
+          } catch (err) {
+            console.error("Erro ao carregar telemetria:", err);
+          }
         }
       });
     });
-
-    function formatHashPower(hsValue) {
-      if (hsValue >= 1000000000000) return (hsValue / 1000000000000).toFixed(2) + ' PHS';
-      else if (hsValue >= 1000000000) return (hsValue / 1000000000).toFixed(2) + ' THS';
-      else if (hsValue >= 1000) return (hsValue / 1000).toFixed(2) + ' GHS';
-      else return Number(hsValue).toFixed(1) + ' HS';
-    }
-
-    async function loadUserTelemetryFromDatabase(uid) {
-      try {
-        const userRef = db.collection('users').doc(uid);
-        const doc = await userRef.get();
-
-        let gamesPower = 0;
-        let mthBalance = 0;
-
-        if (doc.exists) {
-          const data = doc.data();
-          gamesPower = data.gamesPower || 0;
-          mthBalance = data.mthBalance || 0;
-
-          // Atualiza saldo MTH
-          const balanceEl = document.getElementById('header-mth-balance');
-          if (balanceEl) balanceEl.innerText = Number(mthBalance).toFixed(2);
-        }
-
-        // Exibe na Telemetria da Home usando o ID do Firestore
-        const powerEl = document.getElementById('telemetry-user-power');
-        if (powerEl) {
-          powerEl.innerText = formatHashPower(gamesPower);
-        }
-
-        // Pool Global da Rede (Soma do poder do usuário na rede)
-        const globalPoolEl = document.getElementById('global-network-pool');
-        if (globalPoolEl) {
-          let globalVal = gamesPower > 0 ? (gamesPower * 0.001).toFixed(3) + " Eh/s" : "0.000 Eh/s";
-          globalPoolEl.innerText = globalVal;
-        }
-
-      } catch (err) {
-        console.error("Erro ao carregar telemetria do Firestore:", err);
-      }
-    }
 
     function logoutUser() {
       auth.signOut().then(() => {
@@ -94,9 +79,10 @@
     #side-menu.open { transform: translateX(0); }
   </style>
 </head>
-<body class="min-h-screen pb-24 relative overflow-x-hidden">
+<body class="min-h-screen pb-24 relative overflow-x-hidden flex flex-col items-center">
 
-  <header class="sticky top-0 z-40 bg-[#070f1e]/95 backdrop-blur-md border-b border-slate-800 px-4 py-3">
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-[#070f1e]/95 backdrop-blur-md border-b border-slate-800 px-4 py-3 w-full">
     <div class="max-w-md mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-2">
         <div class="w-10 h-10 border-2 border-cyan-400 rotate-45 flex items-center justify-center bg-cyan-950/40 glow-blue">
@@ -120,6 +106,7 @@
     </div>
   </header>
 
+  <!-- MENU LATERAL -->
   <div id="side-menu-overlay" onclick="toggleMenu()" class="hidden fixed inset-0 bg-black/70 z-50"></div>
   <aside id="side-menu" class="closed fixed top-0 right-0 bottom-0 w-64 bg-[#0d1527] border-l border-slate-800 z-50 p-5 space-y-4 overflow-y-auto">
     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -139,14 +126,15 @@
       <a href="referral.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-bullhorn w-5 text-center"></i><span>Referral Program</span></a>
       <a href="offerwalls.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-list-check w-5 text-center"></i><span>Offerwalls</span></a>
       <a href="about.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-regular fa-lightbulb w-5 text-center"></i><span>About</span></a>
-      <a href="faq.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-regular fa-circle-question w-5 text-center"><span>FAQ</span></a>
+      <a href="faq.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-regular fa-circle-question w-5 text-center"></i><span>FAQ</span></a>
       <div class="pt-4 border-t border-slate-800">
         <a href="#" onclick="logoutUser(); return false;" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-950/40"><i class="fa-solid fa-right-from-bracket w-5 text-center"></i><span>Log out</span></a>
       </div>
     </nav>
   </aside>
 
-  <main class="max-w-md mx-auto px-4 pt-4 space-y-4">
+  <!-- HOME CONTENT -->
+  <main class="max-w-md w-full px-4 pt-4 space-y-4">
     <div class="flex items-center justify-between text-xs">
       <div>
         <span class="text-cyan-400 font-bold uppercase tracking-wider text-[10px]">Mitria Network / Dashboard</span>
@@ -158,6 +146,7 @@
       </div>
     </div>
 
+    <!-- Mission Pass -->
     <div class="card-bg rounded-xl p-4 border-amber-500/30 relative overflow-hidden">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center space-x-2">
@@ -168,7 +157,7 @@
       </div>
     </div>
 
-    <!-- Telemetria Dinâmica do Firestore -->
+    <!-- Telemetria Dinâmica -->
     <div class="card-bg rounded-xl p-4 space-y-3">
       <div class="flex items-center justify-between border-b border-slate-800 pb-2">
         <div class="flex items-center space-x-2">
@@ -189,6 +178,7 @@
       </div>
     </div>
 
+    <!-- SALA DE MINERAÇÃO -->
     <div class="space-y-2">
       <div class="flex justify-between items-center px-1">
         <h3 class="font-orbitron font-bold text-sm text-white">SALA DE MINERAÇÃO (12 ESTANTES)</h3>
