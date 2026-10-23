@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Aero Dash - Modern Sci-Fi City</title>
+  <title>Aero Dash - Mitria Space Command</title>
   
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
@@ -46,7 +46,6 @@
     .btn-primary { background: var(--accent-cyan); color: #000; }
     .btn-success { background: var(--accent-lime); color: #000; }
     .btn-secondary { background: #30363d; color: #fff; }
-    .btn-home { background: #161b22; color: var(--text-gray); border: 1px solid #30363d; }
     .level-badge { background: var(--accent-lime); color: #000; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 800; margin-bottom: 10px; }
   </style>
 </head>
@@ -55,14 +54,14 @@
     <div class="game-topbar">
       <div class="topbar-item">
         <span class="topbar-label">Status</span>
-        <span class="topbar-val" id="ui-stage">Aero Dash - Nuvem</span>
+        <span class="topbar-val" id="ui-stage">Aero Dash - Jogo Ativo</span>
       </div>
       <div class="topbar-item">
         <span class="topbar-label">Vidas</span>
         <span class="topbar-val" id="ui-lives" style="color: var(--accent-red);">❤️ ❤️ ❤️</span>
       </div>
       <div class="topbar-item">
-        <span class="topbar-label">Torres</span>
+        <span class="topbar-label">Objetivo</span>
         <span class="topbar-val" id="ui-score" style="color: var(--accent-lime);">0 / 10</span>
       </div>
       <button class="audio-btn" onclick="toggleAudio()"><span id="audio-icon">🔊</span></button>
@@ -73,7 +72,7 @@
     <div id="overlay" class="overlay">
       <span id="level-badge" class="level-badge">AERO DASH</span>
       <h2 id="overlay-title" class="overlay-title" style="color: var(--accent-cyan);">PRONTO PARA PILOTAR?</h2>
-      <p id="overlay-desc" class="overlay-desc">Desvie dos obstáculos e complete o percurso para transmitir os dados à nuvem.</p>
+      <p id="overlay-desc" class="overlay-desc">Desvie dos obstáculos e complete o percurso para avançar de fase.</p>
 
       <div id="countdown-box" style="display: none;">
         <div id="countdown-num" class="countdown-number">3</div>
@@ -81,7 +80,7 @@
 
       <div id="btn-group" class="btn-group">
         <button id="btn-start" class="btn btn-primary" onclick="startCountdown()">INICIAR JOGO</button>
-        <button id="btn-finish" class="btn btn-success" style="display: none;" onclick="goToSync()">ENVIAR DADOS PARA O DATA CENTER ➔</button>
+        <button id="btn-finish" class="btn btn-success" style="display: none;" onclick="goToSync()">ENVIAR DADOS PARA A NUVEM ➔</button>
         <a id="btn-games" href="../index.html" class="btn btn-secondary">← Voltar para o Hub</a>
       </div>
     </div>
@@ -93,52 +92,25 @@
     const overlay = document.getElementById('overlay');
     const overlayTitle = document.getElementById('overlay-title');
     const overlayDesc = document.getElementById('overlay-desc');
-    const levelBadge = document.getElementById('level-badge');
     const countdownBox = document.getElementById('countdown-box');
     const countdownNum = document.getElementById('countdown-num');
     const btnGroup = document.getElementById('btn-group');
     const btnStart = document.getElementById('btn-start');
     const btnFinish = document.getElementById('btn-finish');
-    const btnGames = document.getElementById('btn-games');
 
     const uiLives = document.getElementById('ui-lives');
     const uiScore = document.getElementById('ui-score');
     const audioIcon = document.getElementById('audio-icon');
 
-    let audioEnabled = true, audioCtx = null, bgMusicTimer = null;
+    let audioEnabled = true, audioCtx = null;
     function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-    function toggleAudio() {
-      audioEnabled = !audioEnabled;
-      audioIcon.innerText = audioEnabled ? '🔊' : '🔇';
-    }
-
-    function playJumpSound() {
-      if (!audioEnabled) return;
-      initAudio();
-      const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-      osc.type = 'sine'; osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.15, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-      osc.connect(gain); osc.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-    }
-
-    function playCrashSound() {
-      if (!audioEnabled) return;
-      initAudio();
-      const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-      osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-      osc.connect(gain); osc.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-    }
+    function toggleAudio() { audioEnabled = !audioEnabled; audioIcon.innerText = audioEnabled ? '🔊' : '🔇'; }
 
     let gameActive = false, score = 0, lives = 3, targetObstacles = 10, distanceTraveled = 0;
     const ship = { x: 120, y: 240, width: 50, height: 24, gravity: 0.19, lift: -4.8, velocity: 0 };
     let pipes = [], pipeTimer = 0;
 
-    const stars = Array.from({ length: 60 }, () => ({ x: Math.random() * 800, y: Math.random() * 480, size: Math.random() * 2 + 0.5, alpha: Math.random(), speed: Math.random() * 0.3 + 0.1 }));
-    const cityBuildingsFar = [{ type: 'pyramid', x: 0, w: 100, h: 280 }, { type: 'slant-right', x: 120, w: 90, h: 320 }, { type: 'antenna-tower', x: 230, w: 70, h: 380 }];
-    const cityBuildingsNear = [{ type: 'antenna-tower', x: 0, w: 80, h: 260 }, { type: 'slant-left', x: 100, w: 100, h: 220 }];
+    const stars = Array.from({ length: 50 }, () => ({ x: Math.random() * 800, y: Math.random() * 480, size: Math.random() * 2 + 0.5, speed: Math.random() * 0.3 + 0.1 }));
 
     function updateLivesUI() {
       let hearts = ""; for (let i = 0; i < lives; i++) hearts += "❤️ ";
@@ -151,7 +123,7 @@
     }
 
     function handleHit() {
-      playCrashSound(); lives--; updateLivesUI();
+      lives--; updateLivesUI();
       if (lives <= 0) {
         endGame(false, "A nave sofreu danos críticos e foi destruída!");
       } else {
@@ -159,48 +131,28 @@
       }
     }
 
-    function drawSciFiBuilding(b, offsetX, color) {
-      let x = (b.x + offsetX) % 900; if (x < -150) x += 900; let y = 480 - b.h;
-      ctx.fillStyle = color; ctx.beginPath();
-      ctx.moveTo(x + 20, y); ctx.lineTo(x + b.w - 20, y); ctx.lineTo(x + b.w, 480); ctx.lineTo(x, 480);
-      ctx.closePath(); ctx.fill();
-    }
-
-    function drawSciFiCityBackground() {
+    function render() {
       ctx.fillStyle = '#030712'; ctx.fillRect(0, 0, 800, 480);
       stars.forEach(s => {
         s.x -= s.speed; if (s.x < 0) s.x = 800;
-        ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha})`; ctx.fillRect(s.x, s.y, s.size, s.size);
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(s.x, s.y, s.size, s.size);
       });
-      cityBuildingsFar.forEach(b => drawSciFiBuilding(b, -(distanceTraveled * 0.15), '#111827'));
-      cityBuildingsNear.forEach(b => drawSciFiBuilding(b, -(distanceTraveled * 0.35), '#1e293b'));
-      ctx.fillStyle = '#06b6d4'; ctx.fillRect(0, 0, 800, 8); ctx.fillRect(0, 472, 800, 8);
-    }
-
-    function drawShip() {
-      ctx.save(); ctx.translate(ship.x, ship.y);
-      ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.moveTo(-24, -5); ctx.lineTo(-38, 0); ctx.lineTo(-24, 5); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(-22, 10); ctx.lineTo(26, 0); ctx.lineTo(-22, -10); ctx.closePath(); ctx.fill();
-      ctx.restore();
-    }
-
-    function drawPipes() {
+      // Desenha obstáculos (canos)
       pipes.forEach(p => {
-        ctx.fillStyle = '#1e293b'; ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2.5;
+        ctx.fillStyle = '#1e293b'; ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2;
         ctx.fillRect(p.x, 0, p.width, p.top); ctx.strokeRect(p.x, 0, p.width, p.top);
         ctx.fillRect(p.x, p.bottom, p.width, 480 - p.bottom); ctx.strokeRect(p.x, p.bottom, p.width, 480 - p.bottom);
       });
-    }
-
-    function render() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawSciFiCityBackground(); drawPipes(); drawShip();
+      // Desenha nave
+      ctx.save(); ctx.translate(ship.x, ship.y);
+      ctx.fillStyle = '#ef4444'; ctx.fillRect(-22, -10, 48, 20);
+      ctx.restore();
     }
 
     function update() {
       if (!gameActive) return;
       ship.velocity += ship.gravity; ship.y += ship.velocity; distanceTraveled += 3.0;
-      if (ship.y - ship.height / 2 <= 8 || ship.y + ship.height / 2 >= 472) { handleHit(); return; }
+      if (ship.y <= 10 || ship.y >= 470) { handleHit(); return; }
       pipeTimer++;
       if (pipeTimer >= 110) {
         pipeTimer = 0;
@@ -209,7 +161,7 @@
       }
       for (let i = pipes.length - 1; i >= 0; i--) {
         let p = pipes[i]; p.x -= 3.0;
-        if (ship.x + ship.width / 2 > p.x && ship.x - ship.width / 2 < p.x + p.width && (ship.y - ship.height / 2 < p.top || ship.y + ship.height / 2 > p.bottom)) {
+        if (ship.x + 25 > p.x && ship.x - 25 < p.x + p.width && (ship.y - 12 < p.top || ship.y + 12 > p.bottom)) {
           handleHit(); return;
         }
         if (!p.passed && p.x + p.width < ship.x) {
@@ -221,7 +173,7 @@
     }
 
     function gameLoop() { update(); render(); if (gameActive) requestAnimationFrame(gameLoop); }
-    function jump() { if (!gameActive) return; ship.velocity = ship.lift; playJumpSound(); }
+    function jump() { if (!gameActive) return; ship.velocity = ship.lift; initAudio(); }
 
     canvas.addEventListener('click', jump);
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); }, { passive: false });
@@ -240,26 +192,24 @@
       }, 750);
     }
 
-    function runGame() { startBgMusic(); render(); requestAnimationFrame(gameLoop); }
+    function runGame() { render(); requestAnimationFrame(gameLoop); }
 
     function triggerPhaseComplete() {
-      gameActive = false; stopBgMusic(); overlay.classList.remove('hidden');
+      gameActive = false; overlay.classList.remove('hidden');
       overlayTitle.innerText = "FASE CONCLUÍDA!"; overlayTitle.style.color = "var(--accent-lime)";
-      overlayDesc.innerText = "Missão cumprida! Clique abaixo para transmitir os dados ao Data Center.";
+      overlayDesc.innerText = "Parabéns! Clique abaixo para registrar o avanço na nuvem.";
       btnStart.style.display = 'none'; btnFinish.style.display = 'block';
-      btnGames.style.display = 'block'; btnGroup.style.display = 'flex';
     }
 
     function goToSync() {
-      // Redireciona para a central de sincronização universal
       window.location.href = `../sync.html?game=aero_dash`;
     }
 
     function endGame(won, reason) {
-      gameActive = false; stopBgMusic(); overlay.classList.remove('hidden');
+      gameActive = false; overlay.classList.remove('hidden');
       overlayTitle.innerText = "GAME OVER"; overlayTitle.style.color = "var(--accent-red)";
       overlayDesc.innerText = reason; btnStart.innerText = "TENTAR NOVAMENTE";
-      btnStart.style.display = 'block'; btnFinish.style.display = 'none'; btnGames.style.display = 'block';
+      btnStart.style.display = 'block'; btnFinish.style.display = 'none';
     }
 
     render();
