@@ -38,7 +38,7 @@
     <div class="game-topbar">
       <div class="topbar-item">
         <span class="topbar-label">Status</span>
-        <span class="topbar-val" id="ui-stage">Nível 1 - Fase 1/30</span>
+        <span class="topbar-val" id="ui-stage">Aero Dash - Ativo</span>
       </div>
       <div class="topbar-item">
         <span class="topbar-label">Vidas</span>
@@ -81,7 +81,6 @@
     const btnGroup = document.getElementById('btn-group');
     const btnStart = document.getElementById('btn-start');
     const btnFinish = document.getElementById('btn-finish');
-    const uiStage = document.getElementById('ui-stage');
     const uiLives = document.getElementById('ui-lives');
     const uiScore = document.getElementById('ui-score');
     const audioIcon = document.getElementById('audio-icon');
@@ -182,6 +181,7 @@
       btnStart.style.display = 'none'; btnFinish.style.display = 'block';
     }
 
+    // Comunicação correta com a tela de transição passando o nome do jogo
     function goToSync() {
       window.location.href = `../sync.html?game=aero_dash`;
     }
