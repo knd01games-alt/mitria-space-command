@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Data Center Sync - KND Arcade</title>
+  <title>Data Center Sync - Mitria Space Command</title>
   
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -72,18 +72,18 @@
 
   <div class="sync-container">
     <h2 class="sync-title">TRANSMISSÃO DE DADOS DO DATA CENTER</h2>
-    <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 14px;">Transferindo pacotes de Hash Power para o servidor...</p>
-    
+    <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 14px;">Transferindo pacotes de Hash Power para o servidor em nuvem...</p>
+
     <canvas id="dcCanvas" width="500" height="200"></canvas>
-    
+
     <div class="progress-bar-bg">
       <div id="progress-fill" class="progress-bar-fill"></div>
     </div>
-    
+
     <div id="bonus-card" class="bonus-box">
-      🎉 BÔNUS ESPECIAL DE MINERAÇÃO (5% CHANCE)! +100 HS EXTRA CONCEDIDO!
+      🎉 BÔNUS ESPECIAL DE MINERAÇÃO (5% CHANCE)! +100 HS EXTRA CONCEDIDO NA NUVEM!
     </div>
-    
+
     <button id="btn-advance" class="btn-next" onclick="goToReward()">AVANÇAR PARA A RECOMPENSA ➔</button>
   </div>
 
@@ -92,78 +92,87 @@
     const game = urlParams.get('game') || 'aero_dash';
     const stage = parseInt(urlParams.get('stage') || '1');
 
-    // Registrar o timestamp de conclusão do jogo para iniciar o Cooldown
-    localStorage.setItem(`knd_last_play_${game}`, Date.now().toString());
+    let wonBonus = false;
 
-    let currentGames = parseInt(localStorage.getItem('knd_total_games_played') || '0');
-    localStorage.setItem('knd_total_games_played', (currentGames + 1).toString());
-
-    // Sincronizar com o Firebase Firestore e regra das 21h
+    // Sincronização 100% em Nuvem via Firestore por ID do Usuário (uid)
     auth.onAuthStateChanged(async (user) => {
-      if (user) {
+      if (!user) {
+        window.location.href = "../login.html";
+      } else {
         try {
           const userRef = db.collection('users').doc(user.uid);
           const doc = await userRef.get();
 
-          let totalPower = 0;
           let gamesPower = 0;
+          let minersPower = 0;
+          let bonusExtra = 0;
+          let gamesPlayed = 0;
 
-          // Verificação da Regra de Reset Diário às 21:00 (Brasília)
+          // Regra de Reset Diário às 21:00 (Brasília)
           const now = new Date();
-          // Ajusta para o horário de Brasília (UTC-3)
           const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
           const brasiliaTime = new Date(utc - (3 * 3600000));
-          
           let todayDateStr = brasiliaTime.toISOString().split('T')[0];
           let currentHour = brasiliaTime.getHours();
 
           if (doc.exists) {
             const data = doc.data();
             let lastReset = data.lastResetDate || '';
-            
-            // Se mudou o dia ou passou das 21h em relação ao reset anterior
+
             if (lastReset !== todayDateStr && currentHour >= 21) {
-              gamesPower = 0; // Reseta pontos do jogo
-              todayDateStr = todayDateStr;
+              gamesPower = 0;
             } else {
               gamesPower = data.gamesPower || 0;
             }
+
+            minersPower = data.minersPower || 0;
+            bonusExtra = data.bonusExtra || 0;
+            gamesPlayed = data.gamesPlayed || 0;
           }
 
-          // Calcula o poder ganho com base no jogo atual
+          // Cálculo do poder ganho com base no jogo
           let earnedPower = 0;
           if (game === 'token_blaster') earnedPower = 21;
           else if (game === 'coin_catcher' || game === 'match3') earnedPower = 15;
           else earnedPower = 16.5;
 
           gamesPower += earnedPower;
-          let minersPower = doc.exists ? (doc.data().minersPower || 0) : 0;
-          let bonusExtra = parseInt(localStorage.getItem('knd_bonus_hash_extra') || '0');
-          totalPower = minersPower + gamesPower + bonusExtra;
+          gamesPlayed += 1;
 
-          // Salva no Firestore
+          // Sorteio de bônus de 5% de chance direto na nuvem
+          if (Math.random() < 0.05) {
+            wonBonus = true;
+            bonusExtra += 100;
+            const bonusCard = document.getElementById('bonus-card');
+            if (bonusCard) bonusCard.style.display = 'block';
+          }
+
+          let totalPower = minersPower + gamesPower + bonusExtra;
+
+          // Gravação atômica no Firestore sem usar localStorage
           await userRef.set({
             gamesPower: gamesPower,
+            bonusExtra: bonusExtra,
             totalPower: totalPower,
-            gamesPlayed: firebase.firestore.FieldValue.increment(1),
-            lastResetDate: todayDateStr
+            gamesPlayed: gamesPlayed,
+            lastResetDate: todayDateStr,
+            [`lastPlay_${game}`]: Date.now()
           }, { merge: true });
 
         } catch (err) {
-          console.error("Erro ao sincronizar com Firestore:", err);
+          console.error("Erro ao sincronizar com Firestore no sync.html:", err);
         }
       }
     });
 
+    // Animação visual do Data Center Sync
     const canvas = document.getElementById('dcCanvas');
     const ctx = canvas.getContext('2d');
     const progressFill = document.getElementById('progress-fill');
-    const bonusCard = document.getElementById('bonus-card');
     const btnAdvance = document.getElementById('btn-advance');
 
     let startTime = Date.now();
     let durationMs = 2500;
-    let wonBonus = false;
 
     function update() {
       let elapsed = Date.now() - startTime;
@@ -179,12 +188,6 @@
       if (progress < 100) {
         requestAnimationFrame(update);
       } else {
-        if (Math.random() < 0.05) {
-          wonBonus = true;
-          bonusCard.style.display = 'block';
-          let bonusHS = parseInt(localStorage.getItem('knd_bonus_hash_extra') || '0');
-          localStorage.setItem('knd_bonus_hash_extra', bonusHS + 100);
-        }
         btnAdvance.style.display = 'block';
       }
     }
