@@ -6,6 +6,14 @@
   <title>MITRIA SPACE COMMAND - Home</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/profile.js" defer></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@500;600;700&display=swap');
     body { background-color: #030712; color: #e2e8f0; font-family: 'Rajdhani', sans-serif; }
@@ -42,7 +50,7 @@
       <div class="flex items-center space-x-3">
         <div class="bg-slate-900 border border-slate-700 px-3 py-1.5 rounded flex items-center space-x-1">
           <i class="fa-solid fa-gem text-cyan-400 text-xs"></i>
-          <span class="font-orbitron text-xs font-bold text-cyan-300" id="header-mth-balance">1000.00</span>
+          <span class="font-orbitron text-xs font-bold text-cyan-300" id="header-mth-balance">0.00</span>
           <span class="text-[9px] text-slate-400">MTH</span>
         </div>
         <button onclick="toggleMenu()" class="w-9 h-9 bg-slate-900 border border-slate-700 rounded-lg flex items-center justify-center text-cyan-400 hover:text-white transition">
@@ -63,7 +71,7 @@
       <a href="index.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg bg-slate-800 text-cyan-400"><i class="fa-solid fa-house w-5 text-center"></i><span>Home</span></a>
       <a href="profile.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-user w-5 text-center"></i><span>Profile</span></a>
       <a href="wallet.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-wallet w-5 text-center"></i><span>Wallet</span></a>
-      <a href="games/index.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-gamepad w-5 text-center"></i><span>Games</span></a>
+      <a href="games.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-gamepad w-5 text-center"></i><span>Games</span></a>
       <a href="market.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-cart-shopping w-5 text-center"></i><span>Market</span></a>
       <a href="inventory.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-bag-shopping w-5 text-center"></i><span>Inventory</span></a>
       <a href="merge.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-solid fa-screwdriver-wrench w-5 text-center"></i><span>Merge Center</span></a>
@@ -74,7 +82,7 @@
       <a href="about.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-regular fa-lightbulb w-5 text-center"></i><span>About</span></a>
       <a href="faq.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-cyan-400"><i class="fa-regular fa-circle-question w-5 text-center"></i><span>FAQ</span></a>
       <div class="pt-4 border-t border-slate-800">
-        <a href="login.html" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-950/40"><i class="fa-solid fa-right-from-bracket w-5 text-center"></i><span>Log out</span></a>
+        <a href="#" onclick="logoutUser(); return false;" class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-red-400 hover:bg-red-950/40"><i class="fa-solid fa-right-from-bracket w-5 text-center"></i><span>Log out</span></a>
       </div>
     </nav>
   </aside>
@@ -119,7 +127,7 @@
         </div>
         <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
           <div class="text-[10px] text-slate-400">Pool Global da Rede</div>
-          <div class="font-orbitron font-bold text-sm text-amber-300" id="telemetry-global-power">3.812 Eh/s</div>
+          <div class="font-orbitron font-bold text-sm text-amber-300" id="global-network-pool">0.000 Eh/s</div>
         </div>
       </div>
     </div>
@@ -190,54 +198,6 @@
         menu.classList.remove('open'); menu.classList.add('closed'); overlay.classList.add('hidden');
       }
     }
-
-    // Formata o Hash Power em HS, GHS, THS, EHS
-    function formatHashPower(hsValue) {
-      if (hsValue >= 1000000000000) return (hsValue / 1000000000000).toFixed(2) + ' PHS';
-      else if (hsValue >= 1000000000) return (hsValue / 1000000000).toFixed(2) + ' THS';
-      else if (hsValue >= 1000) return (hsValue / 1000).toFixed(2) + ' GHS';
-      else return hsValue.toFixed(1) + ' HS';
-    }
-
-    // Calcula o poder ganho no Token Blaster por fase/nível
-    function calcTokenBlasterPower(stage) {
-      let maxStage = Math.min(stage, 31);
-      let total = 0;
-      for (let s = 1; s < maxStage; s++) {
-        let level = Math.floor((s - 1) / 5) + 1;
-        let phasePower = 21 * (1 + (level - 1) * 0.20);
-        total += phasePower;
-      }
-      return total;
-    }
-
-    // Atualiza a Telemetria da Home Lendo o Progresso dos 5 Minigames
-    function updateTelemetry() {
-      let tbStage = parseInt(localStorage.getItem('tb_saved_stage') || '1');
-      let ccStage = parseInt(localStorage.getItem('coin_catcher_saved_stage') || '1');
-      let m3Stage = parseInt(localStorage.getItem('match3_saved_stage') || '1');
-      let c2048Stage = parseInt(localStorage.getItem('crypto_saved_stage') || '1');
-      let adStage = parseInt(localStorage.getItem('aero_dash_saved_stage') || '1');
-
-      let tbHS = calcTokenBlasterPower(tbStage);
-      let ccHS = (Math.min(ccStage, 31) - 1) * 15;
-      let m3HS = (Math.min(m3Stage, 31) - 1) * 15;
-      let c2048HS = (Math.min(c2048Stage, 31) - 1) * 16.5;
-      let adHS = (Math.min(adStage, 31) - 1) * 16.5;
-
-      let bonusHS = parseInt(localStorage.getItem('knd_bonus_hash_extra') || '0');
-      let totalUserPower = tbHS + ccHS + m3HS + c2048HS + adHS + bonusHS;
-
-      // Exibe no Card de Telemetria
-      document.getElementById('telemetry-user-power').innerText = formatHashPower(totalUserPower);
-      
-      // O Pool Global reflete a soma base da rede (3.812 Eh/s) + seu avanço
-      if (totalUserPower > 0) {
-        document.getElementById('telemetry-global-power').innerText = (3.812 + (totalUserPower / 1000000000000)).toFixed(3) + ' Eh/s';
-      }
-    }
-
-    window.addEventListener('DOMContentLoaded', updateTelemetry);
   </script>
 </body>
 </html>
