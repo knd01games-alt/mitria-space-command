@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Firebase App & Auth & Firestore SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
@@ -24,19 +23,16 @@
 
   <div class="w-full max-w-md card-bg rounded-2xl p-6 space-y-6 border border-slate-800 shadow-2xl">
     
-    <!-- Logo -->
     <div class="text-center space-y-1">
       <h1 class="font-orbitron font-extrabold text-2xl tracking-widest text-white">MITRIA</h1>
       <p class="text-xs text-cyan-400 font-bold uppercase tracking-widest">Space Command</p>
     </div>
 
-    <!-- Abas: Login / Cadastrar -->
     <div class="flex border-b border-slate-800 text-sm font-orbitron font-bold">
       <button id="btn-tab-login" type="button" onclick="setMode('login')" class="flex-1 py-2 text-cyan-400 border-b-2 border-cyan-400">LOGIN</button>
       <button id="btn-tab-signup" type="button" onclick="setMode('signup')" class="flex-1 py-2 text-slate-500 hover:text-slate-300">CADASTRAR</button>
     </div>
 
-    <!-- Botão Google -->
     <button type="button" onclick="handleGoogleLogin()" class="w-full bg-slate-900 border border-slate-700 hover:border-cyan-400 py-3 rounded-xl flex items-center justify-center space-x-3 text-sm font-bold text-white transition cursor-pointer">
       <i class="fa-brands fa-google text-red-500 text-base"></i>
       <span>Continuar com o Google</span>
@@ -48,7 +44,6 @@
       <div class="flex-1 h-px bg-slate-800"></div>
     </div>
 
-    <!-- Formulário E-mail/Senha -->
     <form id="auth-form" onsubmit="handleEmailAuth(event)" class="space-y-4">
       <div id="box-username" class="hidden space-y-1">
         <label class="text-xs font-bold text-slate-400">NOME DE USUÁRIO</label>
@@ -82,14 +77,8 @@
       document.getElementById('btn-tab-signup').className = m === 'signup' ? "flex-1 py-2 text-cyan-400 border-b-2 border-cyan-400" : "flex-1 py-2 text-slate-500";
     }
 
-    // Login com Google seguro com verificação de carregamento
     async function handleGoogleLogin() {
       try {
-        if (typeof firebase === 'undefined' || !auth) {
-          alert("Firebase ainda não carregou. Aguarde um segundo e tente novamente.");
-          return;
-        }
-
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
 
@@ -97,31 +86,29 @@
         const user = result.user;
         
         const userRef = db.collection('users').doc(user.uid);
-        const docSnap = await userRef.get();
-
-        if (!docSnap.exists) {
-          await userRef.set({
-            username: user.displayName || 'Comandante',
-            email: user.email,
-            photoURL: user.photoURL || '',
-            mthBalance: 0.00,
-            totalPower: 0,
-            minersPower: 0,
-            gamesPower: 0,
-            temporaryPower: 0,
-            gamesPlayed: 0,
-            gamesWon: 0,
-            createdAt: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
-          });
+        
+        try {
+          const docSnap = await userRef.get();
+          if (!docSnap.exists) {
+            await userRef.set({
+              username: user.displayName || 'Comandante',
+              email: user.email,
+              photoURL: user.photoURL || '',
+              mthBalance: 0.00,
+              totalPower: 0,
+              createdAt: new Date().toLocaleDateString('pt-BR')
+            }, { merge: true });
+          }
+        } catch (dbErr) {
+          console.warn("Aviso do banco (ignorado para permitir entrada):", dbErr);
         }
+
         window.location.href = 'index.html';
       } catch (error) {
-        console.error("Erro Google Auth:", error);
         alert("Erro ao entrar com Google: " + error.message);
       }
     }
 
-    // Login ou Cadastro por E-mail e Senha
     async function handleEmailAuth(event) {
       event.preventDefault();
       
@@ -130,36 +117,33 @@
       const username = document.getElementById('username').value.trim();
 
       try {
-        if (typeof firebase === 'undefined' || !auth) {
-          alert("Firebase ainda não carregou. Tente novamente em instantes.");
-          return;
-        }
-
         if (mode === 'signup') {
           const userCred = await auth.createUserWithEmailAndPassword(email, password);
           const user = userCred.user;
 
-          await db.collection('users').doc(user.uid).set({
-            username: username || 'Comandante',
-            email: email,
-            photoURL: '',
-            mthBalance: 0.00,
-            totalPower: 0,
-            minersPower: 0,
-            gamesPower: 0,
-            temporaryPower: 0,
-            gamesPlayed: 0,
-            gamesWon: 0,
-            createdAt: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
-          });
+          try {
+            await db.collection('users').doc(user.uid).set({
+              username: username || 'Comandante',
+              email: email,
+              photoURL: '',
+              mthBalance: 0.00,
+              totalPower: 0,
+              createdAt: new Date().toLocaleDateString('pt-BR')
+            }, { merge: true });
+          } catch (dbErr) {
+            console.warn("Aviso do banco:", dbErr);
+          }
           alert("Conta criada com sucesso!");
         } else {
           await auth.signInWithEmailAndPassword(email, password);
         }
         window.location.href = 'index.html';
       } catch (error) {
-        console.error("Erro E-mail Auth:", error);
-        alert("Erro na autenticação: " + error.message);
+        if (error.code === 'auth/email-already-in-use') {
+          alert("Este e-mail já está cadastrado! Mude para a aba LOGIN para entrar.");
+        } else {
+          alert("Erro na autenticação: " + error.message);
+        }
       }
     }
   </script>
