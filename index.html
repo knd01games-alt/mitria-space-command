@@ -13,27 +13,56 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <script src="js/firebase-config.js"></script>
 
-  <!-- Proteção de Sessão: Se não estiver logado, vai direto para o login -->
+  <!-- Proteção de Sessão e Carregamento de Telemetria Dinâmica -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      auth.onAuthStateChanged((user) => {
+      auth.onAuthStateChanged(async (user) => {
         if (!user) {
           window.location.href = "login.html";
         } else {
-          // Atualiza saldo se o elemento existir
-          db.collection('users').doc(user.uid).get().then((doc) => {
+          try {
+            const userRef = db.collection('users').doc(user.uid);
+            const doc = await userRef.get();
+
             if (doc.exists) {
               const data = doc.data();
+              
+              // Verificação de Reset Diário às 21h (Brasília)
+              const now = new Date();
+              const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+              const brasiliaTime = new Date(utc - (3 * 3600000));
+              let todayDateStr = brasiliaTime.toISOString().split('T')[0];
+              let currentHour = brasiliaTime.getHours();
+
+              let gamesPower = data.gamesPower || 0;
+              let lastReset = data.lastResetDate || '';
+
+              if (lastReset !== todayDateStr && currentHour >= 21) {
+                gamesPower = 0;
+                await userRef.update({
+                  gamesPower: 0,
+                  totalPower: (data.minersPower || 0),
+                  lastResetDate: todayDateStr
+                });
+                gamesPower = 0;
+              }
+
+              // Atualiza o saldo no header
               const balanceEl = document.getElementById('header-mth-balance');
               if (balanceEl && data.mthBalance !== undefined) {
                 balanceEl.innerText = Number(data.mthBalance).toFixed(2);
               }
+
+              // Atualiza a telemetria do usuário na Home
               const powerEl = document.getElementById('telemetry-user-power');
-              if (powerEl && data.totalPower !== undefined) {
-                powerEl.innerText = data.totalPower + " HS";
+              if (powerEl) {
+                const totalUserPower = (data.minersPower || 0) + gamesPower + (data.temporaryPower || 0);
+                powerEl.innerText = totalUserPower.toFixed(1) + " HS";
               }
             }
-          });
+          } catch (err) {
+            console.error("Erro ao carregar telemetria na Home:", err);
+          }
         }
       });
     });
@@ -174,7 +203,6 @@
       
       <div class="mining-room-canvas">
         <div class="grid grid-cols-2 gap-3">
-          <!-- Rack Rig #1 -->
           <div class="rack-stand">
             <div class="text-[8px] font-orbitron text-cyan-400 text-center mb-1">RACK RIG #1</div>
             <div class="rack-shelf-level">
@@ -186,7 +214,6 @@
             <div class="rack-shelf-level"><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div></div>
           </div>
 
-          <!-- Rack Rig #2 -->
           <div class="rack-stand">
             <div class="text-[8px] font-orbitron text-cyan-400 text-center mb-1">RACK RIG #2</div>
             <div class="rack-shelf-level"><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div><div class="slot-unit"><i class="fa-solid fa-plus text-slate-600 text-[10px]"></i></div></div>
@@ -209,7 +236,6 @@
         </div>
       </div>
 
-      <!-- Seletor de Salas -->
       <div class="flex items-center justify-between bg-slate-900 border border-slate-800 p-2 rounded-xl mt-2">
         <div class="flex space-x-1.5">
           <button class="w-8 h-8 rounded bg-cyan-400 text-slate-950 font-bold text-xs font-orbitron">0</button>
