@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Firebase SDKs Compat -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
@@ -36,13 +36,13 @@
       </div>
     </div>
 
-    <!-- Abas Alternáveis -->
+    <!-- Abas: LOGIN | CADASTRAR -->
     <div class="flex border-b border-slate-800 text-sm font-bold font-orbitron">
-      <button id="tab-login-btn" onclick="switchForm('login')" class="flex-1 py-2 text-cyan-400 border-b-2 border-cyan-400 transition">LOGIN</button>
-      <button id="tab-signup-btn" onclick="switchForm('signup')" class="flex-1 py-2 text-slate-500 hover:text-slate-300 transition">CADASTRAR</button>
+      <button id="tab-login-btn" type="button" onclick="switchForm('login')" class="flex-1 py-2 text-cyan-400 border-b-2 border-cyan-400 transition">LOGIN</button>
+      <button id="tab-signup-btn" type="button" onclick="switchForm('signup')" class="flex-1 py-2 text-slate-500 hover:text-slate-300 transition">CADASTRAR</button>
     </div>
 
-    <!-- Botão Google Principal -->
+    <!-- Botão Google -->
     <button type="button" onclick="loginWithGoogle()" class="w-full bg-slate-900 border border-slate-700 hover:border-cyan-500 py-3 px-4 rounded-xl flex items-center justify-center space-x-3 text-sm font-bold text-white transition">
       <svg class="w-4 h-4" viewBox="0 0 24 24">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -59,8 +59,8 @@
       <div class="flex-1 h-px bg-slate-800"></div>
     </div>
 
-    <!-- Form E-mail/Senha Sem Captcha -->
-    <form id="auth-form" onsubmit="handleAuth(event)" class="space-y-4">
+    <!-- Formulário E-mail / Senha -->
+    <form id="auth-form" onsubmit="handleEmailAuth(event)" class="space-y-4">
       
       <div id="username-field" class="hidden space-y-1">
         <label class="text-xs font-bold text-slate-400">NOME DE USUÁRIO</label>
@@ -115,7 +115,7 @@
       }
     }
 
-    async function handleAuth(event) {
+    async function handleEmailAuth(event) {
       event.preventDefault();
 
       const email = document.getElementById('input-email').value;
@@ -124,6 +124,7 @@
 
       try {
         if (currentMode === 'signup') {
+          // Cadastro via E-mail
           const userCredential = await auth.createUserWithEmailAndPassword(email, password);
           const user = userCredential.user;
           
@@ -143,6 +144,7 @@
 
           alert("Conta criada com sucesso!");
         } else {
+          // Login via E-mail
           await auth.signInWithEmailAndPassword(email, password);
         }
         window.location.href = "index.html";

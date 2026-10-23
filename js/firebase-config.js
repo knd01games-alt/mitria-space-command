@@ -1,4 +1,3 @@
-// Configuração oficial do Firebase obtida do Console
 const firebaseConfig = {
   apiKey: "AIzaSyCHcJ728uZgRgbPPcKrAmrLShX0kmJmiY",
   authDomain: "mitria-space-command.firebaseapp.com",
@@ -9,7 +8,6 @@ const firebaseConfig = {
   measurementId: "G-03QZZERVH5"
 };
 
-// Inicializa o Firebase de forma segura
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
@@ -17,40 +15,39 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Provedor Google configurado para sempre exibir o seletor de contas
+// Provedor Google com forçamento de seletor de contas
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
-// Função de Login com o Google (Popup otimizado)
+// Função para Entrar/Cadastrar com o Google
 function loginWithGoogle() {
   auth.signInWithPopup(googleProvider)
-    .then((result) => {
+    .then(async (result) => {
       const user = result.user;
-      return db.collection('users').doc(user.uid).get().then((doc) => {
-        if (!doc.exists) {
-          return db.collection('users').doc(user.uid).set({
-            username: user.displayName || 'Comandante',
-            email: user.email,
-            photoURL: user.photoURL || '',
-            mthBalance: 0.00,
-            totalPower: 0,
-            minersPower: 0,
-            gamesPower: 0,
-            temporaryPower: 0,
-            gamesPlayed: 0,
-            gamesWon: 0,
-            createdAt: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
-          });
-        }
-      });
-    })
-    .then(() => {
+      const userDoc = await db.collection('users').doc(user.uid).get();
+
+      if (!userDoc.exists) {
+        // Novo Usuário: Cria Perfil Zerado
+        await db.collection('users').doc(user.uid).set({
+          username: user.displayName || 'Comandante',
+          email: user.email,
+          photoURL: user.photoURL || '',
+          mthBalance: 0.00,
+          totalPower: 0,
+          minersPower: 0,
+          gamesPower: 0,
+          temporaryPower: 0,
+          gamesPlayed: 0,
+          gamesWon: 0,
+          createdAt: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+        });
+      }
       window.location.href = 'index.html';
     })
     .catch((error) => {
-      console.error("Erro no login com Google:", error);
+      console.error("Erro no login Google:", error);
       alert("Erro ao conectar com o Google: " + error.message);
     });
 }
