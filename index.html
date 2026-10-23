@@ -13,6 +13,13 @@
   <script src="js/firebase-config.js"></script>
 
   <script>
+    function formatHashPower(hsValue) {
+      if (hsValue >= 1000000000000) return (hsValue / 1000000000000).toFixed(2) + ' PHS';
+      else if (hsValue >= 1000000000) return (hsValue / 1000000000).toFixed(2) + ' THS';
+      else if (hsValue >= 1000) return (hsValue / 1000).toFixed(2) + ' GHS';
+      else return Number(hsValue).toFixed(1) + ' HS';
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       auth.onAuthStateChanged(async (user) => {
         if (!user) {
@@ -34,18 +41,20 @@
               if (balanceEl) balanceEl.innerText = Number(mthBalance).toFixed(2);
             }
 
+            // Exibe o poder vindo dos jogos na telemetria da Home
             const powerEl = document.getElementById('telemetry-user-power');
             if (powerEl) {
-              powerEl.innerText = gamesPower.toFixed(1) + " HS";
+              powerEl.innerText = formatHashPower(gamesPower);
             }
 
+            // Pool Global da Rede
             const globalPoolEl = document.getElementById('global-network-pool');
             if (globalPoolEl) {
               let globalVal = gamesPower > 0 ? (gamesPower * 0.001).toFixed(3) + " Eh/s" : "0.000 Eh/s";
               globalPoolEl.innerText = globalVal;
             }
           } catch (err) {
-            console.error("Erro ao carregar telemetria:", err);
+            console.error("Erro ao carregar telemetria na Home:", err);
           }
         }
       });
@@ -81,7 +90,6 @@
 </head>
 <body class="min-h-screen pb-24 relative overflow-x-hidden flex flex-col items-center">
 
-  <!-- Header -->
   <header class="sticky top-0 z-40 bg-[#070f1e]/95 backdrop-blur-md border-b border-slate-800 px-4 py-3 w-full">
     <div class="max-w-md mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-2">
@@ -106,7 +114,6 @@
     </div>
   </header>
 
-  <!-- MENU LATERAL -->
   <div id="side-menu-overlay" onclick="toggleMenu()" class="hidden fixed inset-0 bg-black/70 z-50"></div>
   <aside id="side-menu" class="closed fixed top-0 right-0 bottom-0 w-64 bg-[#0d1527] border-l border-slate-800 z-50 p-5 space-y-4 overflow-y-auto">
     <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -133,7 +140,6 @@
     </nav>
   </aside>
 
-  <!-- HOME CONTENT -->
   <main class="max-w-md w-full px-4 pt-4 space-y-4">
     <div class="flex items-center justify-between text-xs">
       <div>
@@ -146,7 +152,6 @@
       </div>
     </div>
 
-    <!-- Mission Pass -->
     <div class="card-bg rounded-xl p-4 border-amber-500/30 relative overflow-hidden">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center space-x-2">
@@ -157,7 +162,7 @@
       </div>
     </div>
 
-    <!-- Telemetria Dinâmica -->
+    <!-- Telemetria Dinâmica Sincronizada com o Firestore -->
     <div class="card-bg rounded-xl p-4 space-y-3">
       <div class="flex items-center justify-between border-b border-slate-800 pb-2">
         <div class="flex items-center space-x-2">
