@@ -59,6 +59,7 @@
       background: transparent; border: 2px solid var(--accent-cyan); color: var(--accent-cyan);
       border-radius: 10px; font-weight: 900; font-size: 14px; text-decoration: none; transition: all 0.2s;
     }
+    .btn-play-original.disabled { pointer-events: none; opacity: 0.4; border-color: #475569; color: #475569; }
     .right-column { flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
     .game-title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
     .game-title { font-size: 14px; font-weight: 900; color: #fff; }
@@ -142,11 +143,11 @@
 
   <div style="width: 100%; max-width: 480px;"><div class="section-title">GAMES</div></div>
   <div class="games-list">
-    <!-- Token Blaster -->
-    <div class="game-card-original">
+    <!-- 1. Token Blaster -->
+    <div class="game-card-original" id="card-tb">
       <div class="left-column">
         <img src="assets/cover-tokenblaster.jpg" class="game-cover-img" alt="Token Blaster">
-        <a href="token-blaster/index.html" class="btn-play-original">Play</a>
+        <a href="token-blaster/index.html" class="btn-play-original" id="btn-tb">Play</a>
       </div>
       <div class="right-column">
         <div>
@@ -161,11 +162,11 @@
       </div>
     </div>
 
-    <!-- Coin Catcher -->
-    <div class="game-card-original">
+    <!-- 2. Coin Catcher -->
+    <div class="game-card-original" id="card-cc">
       <div class="left-column">
         <img src="assets/cover-catcher.jpg" class="game-cover-img" alt="Coin Catcher">
-        <a href="coin-catcher/index.html" class="btn-play-original">Play</a>
+        <a href="coin-catcher/index.html" class="btn-play-original" id="btn-cc">Play</a>
       </div>
       <div class="right-column">
         <div>
@@ -180,11 +181,11 @@
       </div>
     </div>
 
-    <!-- Match-3 Puzzle -->
-    <div class="game-card-original">
+    <!-- 3. Match 3 Crypto -->
+    <div class="game-card-original" id="card-m3">
       <div class="left-column">
-        <img src="assets/cover-match3.jpg" class="game-cover-img" alt="Match-3 Puzzle">
-        <a href="match3/index.html" class="btn-play-original">Play</a>
+        <img src="assets/cover-match3.jpg" class="game-cover-img" alt="Match 3">
+        <a href="match3/index.html" class="btn-play-original" id="btn-m3">Play</a>
       </div>
       <div class="right-column">
         <div>
@@ -195,6 +196,44 @@
           <div><div class="sub-stat-lbl">Nível</div><div class="sub-stat-val" id="m3-level">Nível 1</div></div>
           <div><div class="sub-stat-lbl">Fase</div><div class="sub-stat-val" id="m3-phase">Fase 1</div></div>
           <div><div class="sub-stat-lbl">Rest Power</div><div class="sub-stat-val" id="m3-hash">0 HS</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Crypto 2048 -->
+    <div class="game-card-original" id="card-c2048">
+      <div class="left-column">
+        <img src="assets/cover-aerodash.jpg" class="game-cover-img" alt="Crypto 2048">
+        <a href="crypto2048/index.html" class="btn-play-original" id="btn-c2048">Play</a>
+      </div>
+      <div class="right-column">
+        <div>
+          <div class="game-title-row"><span class="game-title">CRYPTO 2048</span></div>
+          <p class="game-desc">Combine blocos numéricos criptografados.</p>
+        </div>
+        <div class="game-stats-box">
+          <div><div class="sub-stat-lbl">Nível</div><div class="sub-stat-val" id="c2048-level">Nível 1</div></div>
+          <div><div class="sub-stat-lbl">Fase</div><div class="sub-stat-val" id="c2048-phase">Fase 1</div></div>
+          <div><div class="sub-stat-lbl">Rest Power</div><div class="sub-stat-val" id="c2048-hash">0 HS</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Aero Dash -->
+    <div class="game-card-original" id="card-ad">
+      <div class="left-column">
+        <img src="assets/cover-2048.jpg" class="game-cover-img" alt="Aero Dash">
+        <a href="aero-dash/index.html" class="btn-play-original" id="btn-ad">Play</a>
+      </div>
+      <div class="right-column">
+        <div>
+          <div class="game-title-row"><span class="game-title">AERO DASH</span></div>
+          <p class="game-desc">Desvie dos obstáculos e complete o percurso aéreo.</p>
+        </div>
+        <div class="game-stats-box">
+          <div><div class="sub-stat-lbl">Nível</div><div class="sub-stat-val" id="ad-level">Nível 1</div></div>
+          <div><div class="sub-stat-lbl">Fase</div><div class="sub-stat-val" id="ad-phase">Fase 1</div></div>
+          <div><div class="sub-stat-lbl">Rest Power</div><div class="sub-stat-val" id="ad-hash">0 HS</div></div>
         </div>
       </div>
     </div>
@@ -219,10 +258,22 @@
     function calcLevelAndPhase(savedStage) {
       let stage = parseInt(savedStage || '1');
       let level = Math.floor((stage - 1) / 5) + 1;
-      return { levelNum: level, level: `Nível ${level}`, phase: stage > 30 ? `Fase 30/30` : `Fase ${stage}` };
+      return { level: `Nível ${level}`, phase: stage > 30 ? `Fase 30/30` : `Fase ${stage}` };
     }
 
-    // Lê e exibe tudo diretamente do Firestore por ID do usuário logado
+    function checkPhaseLimit(stage, btnId) {
+      if (parseInt(stage) > 30) {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          btn.innerText = "MAX 30/30";
+          btn.classList.add('disabled');
+          btn.style.borderColor = "#eab308";
+          btn.style.color = "#eab308";
+        }
+      }
+    }
+
+    // Leitura unificada direto do Firestore por ID do usuário
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
         window.location.href = "../login.html";
@@ -233,32 +284,67 @@
 
           if (doc.exists) {
             const data = doc.data();
-            const totalGames = data.gamesPlayed || 0;
-            const gamesPower = data.gamesPower || 0;
-
-            document.getElementById('total-games').innerText = totalGames;
-            document.getElementById('total-hash').innerText = formatHashPower(gamesPower);
-
-            // Exemplo simulado de distribuição nos cards com base no poder salvo na nuvem
-            document.getElementById('tb-hash').innerText = formatHashPower(gamesPower);
-            document.getElementById('tb-phase').innerText = `Fase ${Math.min((data.tbStage || 1), 30)}`;
+            document.getElementById('total-games').innerText = data.gamesPlayed || 0;
+            document.getElementById('total-hash').innerText = formatHashPower(data.gamesPower || 0);
 
             if (data.mthBalance !== undefined) {
               document.getElementById('header-mth-balance').innerText = Number(data.mthBalance).toFixed(2);
             }
-          } else {
-            await userRef.set({
-              gamesPower: 0,
-              gamesPlayed: 0,
-              minersPower: 0,
-              mthBalance: 1000.00,
-              tbStage: 1,
-              ccStage: 1,
-              m3Stage: 1
-            }, { merge: true });
+
+            // Fases salvas na nuvem para cada jogo
+            let tbS = data.tb_stage || 1;
+            let ccS = data.coin_catcher_stage || 1;
+            let m3S = data.match3_stage || 1;
+            let c2048S = data.crypto_2048_stage || 1;
+            let adS = data.aero_dash_stage || 1;
+
+            // Token Blaster
+            let tbData = calcLevelAndPhase(tbS);
+            document.getElementById('tb-level').innerText = tbData.level;
+            document.getElementById('tb-phase').innerText = tbData.phase;
+            let tbHS = 0;
+            for (let s = 1; s < Math.min(tbS, 31); s++) {
+              let lvl = Math.floor((s - 1) / 5) + 1;
+              tbHS += 21 * (1 + (lvl - 1) * 0.20);
+            }
+            document.getElementById('tb-hash').innerText = formatHashPower(tbHS);
+            checkPhaseLimit(tbS, 'btn-tb');
+
+            // Coin Catcher
+            let ccData = calcLevelAndPhase(ccS);
+            document.getElementById('cc-level').innerText = ccData.level;
+            document.getElementById('cc-phase').innerText = ccData.phase;
+            let ccHS = (Math.min(ccS, 31) - 1) * 15;
+            document.getElementById('cc-hash').innerText = formatHashPower(ccHS);
+            checkPhaseLimit(ccS, 'btn-cc');
+
+            // Match-3
+            let m3Data = calcLevelAndPhase(m3S);
+            document.getElementById('m3-level').innerText = m3Data.level;
+            document.getElementById('m3-phase').innerText = m3Data.phase;
+            let m3HS = (Math.min(m3S, 31) - 1) * 15;
+            document.getElementById('m3-hash').innerText = formatHashPower(m3HS);
+            checkPhaseLimit(m3S, 'btn-m3');
+
+            // Crypto 2048
+            let c2048Data = calcLevelAndPhase(c2048S);
+            document.getElementById('c2048-level').innerText = c2048Data.level;
+            document.getElementById('c2048-phase').innerText = c2048Data.phase;
+            let c2048HS = (Math.min(c2048S, 31) - 1) * 16.5;
+            document.getElementById('c2048-hash').innerText = formatHashPower(c2048HS);
+            checkPhaseLimit(c2048S, 'btn-c2048');
+
+            // Aero Dash
+            let adData = calcLevelAndPhase(adS);
+            document.getElementById('ad-level').innerText = adData.level;
+            document.getElementById('ad-phase').innerText = adData.phase;
+            let adHS = (Math.min(adS, 31) - 1) * 16.5;
+            document.getElementById('ad-hash').innerText = formatHashPower(adHS);
+            checkPhaseLimit(adS, 'btn-ad');
+
           }
         } catch (err) {
-          console.error("Erro ao carregar do Firestore:", err);
+          console.error("Erro ao carregar dados dos jogos do Firestore:", err);
         }
       }
     });
